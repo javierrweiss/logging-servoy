@@ -1,0 +1,1 @@
+(ns sanatoriocolegiales.logging-servoy.persistence.consulta)
