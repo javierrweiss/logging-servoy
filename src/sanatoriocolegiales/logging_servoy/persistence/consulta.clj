@@ -40,3 +40,8 @@
     :else
         (d/q excepcion-por-origen db origen)))
  
+(defn buscar-eventos-por-historia-clinica
+  [])
+
+(defn buscar-eventos-por-historia-clinica-unica
+  [])
