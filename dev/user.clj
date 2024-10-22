@@ -23,7 +23,8 @@
    ;; Logging
    [com.brunobonacci.mulog :as mulog]  ; Event Logging
    [mulog-events]
-   [donut.system :as donut]))                    ; Global context & Tap publisher
+   [donut.system :as donut]
+   [hyperfiddle.rcf]))                    ; Global context & Tap publisher
 
 ;; ---------------------------------------------------------
 ;; Help
@@ -71,6 +72,8 @@
 (println
  "Set REPL refresh directories to "
  (set-refresh-dirs "src" "resources"))
+
+(hyperfiddle.rcf/enable!)
 ;; ---------------------------------------------------------
 
 ;; ---------------------------------------------------------

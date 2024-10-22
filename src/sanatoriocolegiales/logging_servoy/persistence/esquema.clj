@@ -1,10 +1,10 @@
 (ns sanatoriocolegiales.logging-servoy.persistence.esquema)
 
-(def log-schema [{:db/ident :event/origin
+(def log-schema [{:db/ident :evento/origen
                   :db/valueType :db.type/ref
                   :db/cardinality :db.cardinality/one
                   :db/doc "Fuente del evento"}
-                 {:db/ident :event/name
+                 {:db/ident :evento/nombre
                   :db/valueType :db.type/string
                   :db/cardinality :db.cardinality/one
                   :db/doc "Nombre del evento"}
@@ -32,6 +32,12 @@
                   :db/valueType :db.type/string
                   :db/cardinality :db.cardinality/one
                   :db/doc "Excepción"}
+                 {:db/ident :paciente/tipo
+                  :db/valueType :db.type/ref
+                  :db/cardinality :db.cardinality/one
+                  :db/doc "Resuelve a un tipo de referencia :paciente/internado o :paciente/ambulatorio"}
+                 {:db/ident :paciente/internado}
+                 {:db/ident :paciente/ambulatorio}
                  {:db/ident :evento/cirugia}
                  {:db/ident :evento/uco}
                  {:db/ident :evento/convenios}
