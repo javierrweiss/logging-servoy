@@ -109,9 +109,8 @@
 
 (comment
   (def conn (-> (:donut.system/instances (system-repl/system))
-               :env
-               :persistence
-               :conn))
+               :db
+               :datomic))
   (def db (d/db conn))
   (buscar-eventos-por-historia-clinica db 3167170) 
   (tap> (buscar-eventos-por-historia-clinica-unica db 295550))

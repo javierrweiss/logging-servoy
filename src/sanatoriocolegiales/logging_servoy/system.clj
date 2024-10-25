@@ -11,8 +11,10 @@
 
    ;; System dependencies
    [org.httpkit.server     :as http-server]
-   [com.brunobonacci.mulog :as mulog]
-   [datomic.api :as d]))
+   [com.brunobonacci.mulog :as µ]
+   [datomic.api :as d]
+   [donut.system :as ds])
+  (:import java.io.IOException))
 
 ;; ---------------------------------------------------------
 ;; Donut Party System configuration
@@ -26,21 +28,37 @@
      :app-env "prod"
      :http-port (or (System/getenv "SERVICE_HTTP_PORT") 3000)
      :persistence
-     {:conn (d/connect (System/getenv "DATOMIC"))}}
+     {:datomic-conn-string (System/getenv "DATOMIC")}}
     ;; mulog publisher for a given publisher type, i.e. console, cloud-watch
+    :db 
+    {:datomic 
+     #::donut{:start (fn conexion-datomic
+                       [{{:keys [conn-str]} ::donut/config}]
+                       (try
+                         (µ/log ::estableciendo-conexion-datomic)
+                         (d/connect conn-str)
+                         (catch IOException e (µ/log ::error-conexion-datomic :mensaje (ex-message e)))))
+              :stop (fn interrumpir-conexion-datomic
+                      [{::donut/keys [instance]}]
+                      (try 
+                        (µ/log ::liberando-conexion-datomic)
+                        (d/release instance)
+                        (catch IOException e (µ/log ::error-al-liberar-conexion-datomic :mensaje (ex-message e)))))
+              :config {:conn-str (ds/ref [:env :persistence :datomic-conn-string])}}            
+    }
     :event-log
     {:publisher
      #::donut{:start (fn mulog-publisher-start
                        [{{:keys [global-context publisher]} ::donut/config}]
-                       (mulog/set-global-context! global-context)
-                       (mulog/log ::log-publish-component
+                       (µ/set-global-context! global-context)
+                       (µ/log ::log-publish-component
                                   :publisher-config publisher
                                   :local-time (java.time.LocalDateTime/now))
-                       (mulog/start-publisher! publisher))
+                       (µ/start-publisher! publisher))
 
               :stop (fn mulog-publisher-stop
                       [{::donut/keys [instance]}]
-                      (mulog/log ::log-publish-component-shutdown :publisher instance :local-time (java.time.LocalDateTime/now))
+                      (µ/log ::log-publish-component-shutdown :publisher instance :local-time (java.time.LocalDateTime/now))
                       ;; Pause so final messages have chance to be published
                       (Thread/sleep 250)
                       (instance))
@@ -59,7 +77,7 @@
     {:server
      #::donut{:start (fn http-kit-run-server
                        [{{:keys [handler options]} ::donut/config}]
-                       (mulog/log ::http-server-component
+                       (µ/log ::http-server-component
                                   :handler handler
                                   :port (options :port)
                                   :local-time (java.time.LocalDateTime/now))
@@ -67,7 +85,7 @@
 
               :stop  (fn http-kit-stop-server
                        [{::donut/keys [instance]}]
-                       (mulog/log ::http-server-component-shutdown
+                       (µ/log ::http-server-component-shutdown
                                   :http-server-instance instance
                                   :local-time (java.time.LocalDateTime/now))
                        (instance))

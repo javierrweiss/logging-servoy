@@ -78,11 +78,10 @@
   (d/create-database (System/getenv "DATOMIC"))
 
   (registrar-esquema! cnn)
-
+    
   (def cnn (-> (:donut.system/instances (system-repl/system))
-               :env
-               :persistence
-               :conn))
+               :db
+               :datomic))
 
   (ejecutar! cnn [{:db/ident :evento/estado
                    :db/isComponent true}])
@@ -157,7 +156,7 @@
                                       \"anes_esca_3\":0,\"anes_esca_2\":0,\"anes_esca_1\":0,\"anes_filler_3\":\" \"}}"]}}])
 
   (def db (d/db cnn))
-
+  
   (def reglas '[[(cirugia ?hc ?hcu ?nombre ?estado ?fecha)
                  [?e :paciente/historia-clinica ?hc]
                  [?e :paciente/historia-clinica-unica ?hcu]
