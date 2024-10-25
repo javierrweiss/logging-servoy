@@ -6,7 +6,9 @@
                              :in $ ?fecha
                              :where
                              [?e :evento/fecha ?f]
-                             [(>= ?f ?fecha)]])
+                             [(>= ?f ?fecha)]
+                             [?e :evento/estado ?est]
+                             [?est :estado/excepcion _]])
 
 (def excepcion-por-origen '[:find (pull ?e [:paciente/historia-clinica-unica
                                             :paciente/historia-clinica
@@ -17,7 +19,9 @@
                                             {:paciente/tipo [:db/ident]}])
                             :in $ ?origen
                             :where
-                            [?e :evento/origen ?origen]])
+                            [?e :evento/origen ?origen]
+                            [?e :evento/estado ?est]
+                            [?est :estado/excepcion _]])
 
 (def origenes-de-eventos '[:find  [?nombre ...]
                            :where [_ :evento/origen ?e]
@@ -45,7 +49,12 @@
                       :where
                       [?e :paciente/historia-clinica-unica ?h]])
 
-(def evento-por-patron-de-nombre)
+(def evento-por-patron-de-nombre '[:find (pull ?e [* {:evento/origen [:db/ident]}
+                                                   {:paciente/tipo [:db/ident]}])
+                                   :in $ ?evento
+                                   :where
+                                   [?e :evento/nombre ?nombre]
+                                   [(re-seq ?evento ?nombre)]])
  
 (defn buscar-excepcion-desde
   [db fecha]
@@ -81,17 +90,33 @@
     :else
     (d/q evento-por-hcu db hcu)))
 
-(defn buscar-por-patron-nombre-de-evento
-  [db patron]
-  (cond
-    (nil? db) (throw (IllegalArgumentException. "La instancia de la base de datos es nula"))
-    (not patron) (throw (IllegalArgumentException. "El patrón regex no puede ser nulo"))
-    :else
-    (d/q evento-por-patron-de-nombre db patron)))
-
 (defn obtener-origenes-eventos
   [db]
   (cond
     (nil? db) (throw (IllegalArgumentException. "La instancia de la base de datos es nula")) 
     :else
     (d/q origenes-de-eventos db)))
+
+(defn buscar-eventos-por-patron-de-nombre
+  [db patron]
+  (cond
+    (nil? db) (throw (IllegalArgumentException. "La instancia de la base de datos es nula"))
+    (not (string? patron)) (throw (IllegalArgumentException. "El patrón de búsqueda debe ser un string"))
+    :else
+    (let [patron (re-pattern (str "(?ix)" patron))]
+      (d/q evento-por-patron-de-nombre db patron))))
+
+
+(comment
+  (def conn (-> (:donut.system/instances (system-repl/system))
+               :env
+               :persistence
+               :conn))
+  (def db (d/db conn))
+  (buscar-eventos-por-historia-clinica db 3167170) 
+  (tap> (buscar-eventos-por-historia-clinica-unica db 295550))
+  (tap> (buscar-eventos-por-patron-de-nombre db "Anat"))
+  (tap> (obtener-origenes-eventos db))  
+  (tap> (buscar-excepcion-por-origen db :evento/cirugia))
+  (tap> (buscar-excepcion-desde db "2024-05-14"))
+  ) 

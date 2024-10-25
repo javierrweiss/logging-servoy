@@ -191,19 +191,22 @@
        3167170)
 
 
-  (d/q '[:find ?e ?evento ?hc ?hcu ?excepcion ?estado ?tx
-         :in $ ?nombre
+  (d/q '[:find (pull ?e [* {:evento/origen [:db/ident]}
+                         {:paciente/tipo [:db/ident]}])
+         :in $ 
+         :where 
+         [?e :evento/nombre ?nombre]
+         [(re-seq (re-pattern "PREOPERATORIA") ?nombre)]]
+       db)
+  
+  (d/q '[:find (pull ?e [* {:evento/origen [:db/ident]}
+                         {:paciente/tipo [:db/ident]}])
+         :in $ ?evento
          :where
-         [?e :paciente/historia-clinica ?hc ?tx]
-         [?e :paciente/historia-clinica-unica ?hcu ?tx]
-         [?e :evento/nombre ?nombre ?tx]
-         [(re-seq #"patológica" ?nombre)]
-         [?id :evento/origen ?o ?tx]
-         [?o :db/ident ?origen ?tx]
-         [?e :evento/excepcion ?excepcion ?tx]
-         [?e :evento/estado ?estado ?tx]]
+         [?e :evento/nombre ?nombre]
+         [(re-seq ?evento ?nombre)]]
        db
-       "Anatomía patológica")
+       (re-pattern (str "(?ix)" "seguridad")))
 
 
   (d/q '[:find ?fecha
@@ -309,27 +312,22 @@
                                {:paciente/tipo [:db/ident]}])
                :in $ ?origen
                :where
-               [?e :evento/origen ?origen]]
+               [?e :evento/origen ?origen]
+               [?e :evento/estado ?est]
+               [?est :estado/excepcion _]]
              db
              :evento/cirugia))
  
+  (tap> (d/q '[:find (pull ?e [*])
+               :where [?e :evento/nombre]]
+             db))
 
-  (let [tipos #{:db.type/bigdec
-                :db.type/bigint
-                :db.type/boolean
-                :db.type/bytes
-                :db.type/double
-                :db.type/float
-                :db.type/instant
-                :db.type/keyword
-                :db.type/long
-                :db.type/ref
-                :db.type/string
-                :db.type/symbol
-                :db.type/tuple
-                :db.type/uuid
-                :db.type/uri}]
-    (some tipos [:db.chingada]))
+  (d/q '[:find ?e 
+         :where [?e :evento/nombre]]
+       db)
+  
+  
+  
 
   (agregar-nuevo-atributo :chupa/cabras :db.type/string :db.cardinality/one "Cualquier vaina" false)
   (agregar-nuevo-atributo :chupa/cabras :db.type/string :db.cardinality/one "Cualquier vaina" true)
