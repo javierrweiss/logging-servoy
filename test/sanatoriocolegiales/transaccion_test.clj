@@ -1,5 +1,5 @@
 (ns sanatoriocolegiales.transaccion-test
-  (:require [sanatoriocolegiales.logging-servoy.persistence.transaccion :refer :all]
+  (:require [sanatoriocolegiales.logging-servoy.persistence.datomic.transaccion :refer :all]
             [clojure.test :refer [deftest is run-all-tests run-test testing]]
             [matcher-combinators.test]
             [matcher-combinators.matchers :as m]))

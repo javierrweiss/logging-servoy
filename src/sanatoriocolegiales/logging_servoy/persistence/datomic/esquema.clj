@@ -1,4 +1,4 @@
-(ns sanatoriocolegiales.logging-servoy.persistence.esquema)
+(ns sanatoriocolegiales.logging-servoy.persistence.datomic.esquema)
 
 (def log-schema [{:db/ident :evento/origen
                   :db/valueType :db.type/ref

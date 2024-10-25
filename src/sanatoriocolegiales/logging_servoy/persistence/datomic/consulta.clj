@@ -1,4 +1,4 @@
-(ns sanatoriocolegiales.logging-servoy.persistence.consulta
+(ns sanatoriocolegiales.logging-servoy.persistence.datomic.consulta
   (:require [datomic.api :as d]
             [clojure.instant :refer [read-instant-date]]))
 

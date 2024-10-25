@@ -1,6 +1,6 @@
-(ns sanatoriocolegiales.logging-servoy.persistence.transaccion
+(ns sanatoriocolegiales.logging-servoy.persistence.datomic.transaccion
   (:require [datomic.api :as d]
-            [sanatoriocolegiales.logging-servoy.persistence.esquema :refer [log-schema]]
+            [sanatoriocolegiales.logging-servoy.persistence.datomic.esquema :refer [log-schema]]
             [com.brunobonacci.mulog :as µ]))
 
 (defn registrar-esquema!
@@ -334,4 +334,5 @@
   (agregar-nuevo-atributo :chupa/cabras :string :db.cardinality/one "Cualquier vaina" false)
   (agregar-nuevo-atributo 'chancho/bendito :db.type/string :db.cardinality/one "Cualquier vaina" false)
 
+  (type cnn)
   )
