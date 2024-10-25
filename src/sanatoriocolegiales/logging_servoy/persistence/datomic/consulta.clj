@@ -112,7 +112,7 @@
                :db
                :datomic))
   (def db (d/db conn))
-  (buscar-eventos-por-historia-clinica db 3167170) 
+  (tap> (buscar-eventos-por-historia-clinica db 3167170)) 
   (tap> (buscar-eventos-por-historia-clinica-unica db 295550))
   (tap> (buscar-eventos-por-patron-de-nombre db "Anat"))
   (tap> (obtener-origenes-eventos db))  

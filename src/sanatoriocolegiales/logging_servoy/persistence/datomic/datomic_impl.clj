@@ -5,31 +5,47 @@
 
 (extend-protocol persistence-api/Persistencia
   datomic.peer.Connection
-  (insertar [this db datos]
+  (insertar [db datos]
     (transaccion/ejecutar! db datos))
-  (actualizar [this db datos]
+  (actualizar [db datos]
     (transaccion/ejecutar! db datos))
-  (eliminar [this db datos]
+  (eliminar [db datos]
     (transaccion/ejecutar! db datos))
-  (agregar-columna-o-atributo [this campo tipo-dato cardinalidad doc unico?]
+  (agregar-columna-o-atributo [campo tipo-dato cardinalidad doc unico?]
     (transaccion/agregar-nuevo-atributo campo tipo-dato cardinalidad doc unico?))
-  (actualizar-columna-o-atributo [this campo-anterior campo-nuevo]
+  (actualizar-columna-o-atributo [campo-anterior campo-nuevo]
     (transaccion/actualizar-atributo-esquema campo-anterior campo-nuevo))
-  (excepcion-desde [this db fecha]
+  (excepcion-desde [db fecha]
     (let [db (transaccion/obtener-estado-db! db)]
       (consulta/buscar-excepcion-desde db fecha)))
-  (excepcion-por-origen [this db origen]
+  (excepcion-por-origen [db origen]
     (let [db (transaccion/obtener-estado-db! db)]
       (consulta/buscar-excepcion-por-origen db origen)))
-  (eventos-por-historia-clinica [this db hc]
+  (eventos-por-historia-clinica [db hc]
     (let [db (transaccion/obtener-estado-db! db)]
       (consulta/buscar-eventos-por-historia-clinica db hc)))
-  (eventos-por-historia-clinica-unica [this db hcu]
+  (eventos-por-historia-clinica-unica [db hcu]
     (let [db (transaccion/obtener-estado-db! db)]
       (consulta/buscar-eventos-por-historia-clinica-unica db hcu)))
-  (eventos-por-nombre [this db nombre]
+  (eventos-por-nombre [db nombre]
     (let [db (transaccion/obtener-estado-db! db)]
       (consulta/buscar-eventos-por-patron-de-nombre db nombre)))
-  (obtener-todos-los-eventos [this db]
+  (obtener-todos-los-eventos [db]
     (let [db (transaccion/obtener-estado-db! db)]
       (consulta/obtener-origenes-eventos db))))
+
+
+(comment
+  (def cnn (-> (:donut.system/instances (system-repl/system))
+               :db
+               :datomic))
+  
+  (persistence-api/obtener-todos-los-eventos cnn)
+  (persistence-api/eventos-por-historia-clinica cnn 1000)
+  (tap> (persistence-api/eventos-por-historia-clinica cnn 3173210))
+  (tap> (persistence-api/eventos-por-historia-clinica-unica cnn 295550))
+  (persistence-api/excepcion-por-origen cnn :evento/cirugia)
+  (persistence-api/excepcion-desde cnn "2024-01-01")
+  
+  
+  )
