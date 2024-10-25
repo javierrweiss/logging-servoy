@@ -17,8 +17,8 @@
                   :db/cardinality :db.cardinality/one
                   :db/doc "Historia clínica única"}
                  {:db/ident :evento/estado
-                  :db/valueType :db.type/string
-                  :db/cardinality :db.cardinality/many
+                  :db/valueType :db.type/ref
+                  :db/cardinality :db.cardinality/one
                   :db/doc "Estado de la aplicación"}
                  {:db/ident :convenios/nro-lote
                   :db/valueType :db.type/long
@@ -28,14 +28,23 @@
                   :db/valueType :db.type/long
                   :db/cardinality :db.cardinality/one
                   :db/doc "Contador de registros"}
-                 {:db/ident :evento/excepcion
+                 {:db/ident :estado/excepcion
                   :db/valueType :db.type/string
-                  :db/cardinality :db.cardinality/one
+                  :db/cardinality :db.cardinality/many
                   :db/doc "Excepción"}
+                 {:db/ident :estado/ok
+                  :db/isComponent true
+                  :db/valueType :db.type/string
+                  :db/cardinality :db.cardinality/many
+                  :db/doc "Registros que indican el estado actual de la aplicación"}
                  {:db/ident :paciente/tipo
                   :db/valueType :db.type/ref
                   :db/cardinality :db.cardinality/one
                   :db/doc "Resuelve a un tipo de referencia :paciente/internado o :paciente/ambulatorio"}
+                 {:db/ident :evento/fecha
+                  :db/valueType :db.type/instant
+                  :db/cardinality :db.cardinality/one
+                  :db/doc "Momento del evento"}
                  {:db/ident :paciente/internado}
                  {:db/ident :paciente/ambulatorio}
                  {:db/ident :evento/cirugia}

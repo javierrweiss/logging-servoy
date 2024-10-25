@@ -1,11 +1,3 @@
-;; ---------------------------------------------------------
-;; sanatoriocolegiales.logging-servoy
-;;
-;; TODO: Provide a meaningful description of the project
-;;
-;; Start the service using donut configuration and an environment profile.
-;; ---------------------------------------------------------
-
 (ns sanatoriocolegiales.logging-servoy.system
   "Service component lifecycle management"
   (:gen-class)
