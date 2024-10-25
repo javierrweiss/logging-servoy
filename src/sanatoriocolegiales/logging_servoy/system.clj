@@ -96,7 +96,7 @@
 
      ;; Function handling all requests, passing system environment
      ;; Configure environment for router application, e.g. database connection details, etc.
-     :handler (router/app (donut/ref [:env :persistence :conn]))}}})
+     :handler (router/app (donut/ref [:db]))}}})
 
 ;; End of Donut Party System configuration
 ;; ---------------------------------------------------------
