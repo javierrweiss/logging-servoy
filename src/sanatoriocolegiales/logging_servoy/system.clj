@@ -36,9 +36,9 @@
                       (try 
                         (µ/log ::liberando-conexion-datomic)
                         (d/release instance)
+                        (Thread/sleep 250)
                         (catch IOException e (µ/log ::error-al-liberar-conexion-datomic :mensaje (ex-message e)))))
-              :config {:conn-str (donut/ref [:env :persistence :datomic-conn-string])}}            
-    }
+              :config {:conn-str (donut/ref [:env :persistence :datomic-conn-string])}}}
     :event-log
     {:publisher
      #::donut{:start (fn mulog-publisher-start
