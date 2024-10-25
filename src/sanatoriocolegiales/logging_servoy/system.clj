@@ -4,20 +4,13 @@
   (:require
    ;; Application dependencies
    [sanatoriocolegiales.logging-servoy.router :as router]
-
    ;; Component system
    [donut.system :as donut]
-   ;; [sanatoriocolegiales.logging-servoy.parse-system :as parse-system]
-
    ;; System dependencies
    [org.httpkit.server     :as http-server]
    [com.brunobonacci.mulog :as µ]
-   [datomic.api :as d]
-   [donut.system :as ds])
+   [datomic.api :as d])
   (:import java.io.IOException))
-
-;; ---------------------------------------------------------
-;; Donut Party System configuration
 
 (def main
   "System Component management with Donut"
@@ -44,7 +37,7 @@
                         (µ/log ::liberando-conexion-datomic)
                         (d/release instance)
                         (catch IOException e (µ/log ::error-al-liberar-conexion-datomic :mensaje (ex-message e)))))
-              :config {:conn-str (ds/ref [:env :persistence :datomic-conn-string])}}            
+              :config {:conn-str (donut/ref [:env :persistence :datomic-conn-string])}}            
     }
     :event-log
     {:publisher
@@ -98,8 +91,6 @@
      ;; Configure environment for router application, e.g. database connection details, etc.
      :handler (router/app (donut/ref [:db]))}}})
 
-;; End of Donut Party System configuration
-;; ---------------------------------------------------------
 (comment
   
   (d/create-database "datomic:sql://bases_auxiliares?jdbc:postgresql://10.200.0.190:5432/bases_auxiliares?user=auxiliar&password=auxi2013")
