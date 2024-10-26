@@ -15,7 +15,7 @@
 
    ;; Service Routing
    [sanatoriocolegiales.logging-servoy.api.system-admin :as system-admin]
-   [sanatoriocolegiales.logging-servoy.api.scoreboard   :as scoreboard]
+   [sanatoriocolegiales.logging-servoy.api.logger   :as scoreboard]
 
    ;; Self-documenting API
    [reitit.swagger    :as api-docs]
@@ -40,14 +40,8 @@
   ["/swagger.json"
    {:get {:no-doc  true
           :swagger {:info {:title "sanatoriocolegiales logging-servoy Service API"
-                           :description "TODO: Provide a meaningful description of the project"
-                           :version "0.1.0"
-                           :termsOfService "https://net.clojars.sanatoriocolegiales/"
-                           :contact {:name "Engineering Team"
-                                     :url "https://net.clojars.sanatoriocolegiales/wiki/engineering-team"}
-                           :license {:name "© Jrivero, 2024"
-                                     :url "http://creativecommons.org/licenses/by-sa/4.0/"}
-                           :x-logo {:url "./favicon.png"}}}
+                           :description "Servicio para loggear eventos de la aplicación Servoy"
+                           :version "0.1.0"}}
           :handler (api-docs/create-swagger-handler)}}])
 ;; --------------------------------------------------
 
