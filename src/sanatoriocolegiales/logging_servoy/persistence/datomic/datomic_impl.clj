@@ -43,7 +43,7 @@
   (persistence-api/obtener-todos-los-eventos cnn)
   (persistence-api/eventos-por-historia-clinica cnn 1000)
   (tap> (persistence-api/eventos-por-historia-clinica cnn 3173210))
-  (tap> (persistence-api/eventos-por-historia-clinica-unica cnn 295550))
+  (tap> (persistence-api/eventos-por-historia-clinica-unica cnn 232121))
   (persistence-api/excepcion-por-origen cnn :evento/cirugia)
   (persistence-api/excepcion-desde cnn "2024-01-01")
   
