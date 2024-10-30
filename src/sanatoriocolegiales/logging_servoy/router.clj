@@ -15,7 +15,7 @@
 
    ;; Service Routing
    [sanatoriocolegiales.logging-servoy.api.system-admin :as system-admin]
-   [sanatoriocolegiales.logging-servoy.api.logger   :as scoreboard]
+   [sanatoriocolegiales.logging-servoy.api.logger   :as logger]
 
    ;; Self-documenting API
    [reitit.swagger    :as api-docs]
@@ -24,6 +24,7 @@
    ;; Provide details of parameters to API documentation UI (swagger)
    [reitit.coercion.spec]
    [reitit.ring.coercion :as coercion]
+   [reitit.ring.spec :as rrs]
 
    ;; Error handling
    [reitit.dev.pretty :as pretty]
@@ -69,7 +70,8 @@
                        ;; logging with mulog
                        [middleware-service/wrap-trace-events :trace-events]]}
    ;; pretty-print reitit exceptions for human consumptions
-   :exception pretty/exception})
+   :exception pretty/exception
+   :validate rrs/validate})
 
 ;; --------------------------------------------------
 ;; Routing
@@ -79,9 +81,9 @@
   using `ring-handler` to manage HTTP request and responses.
   Arguments: `system-config containt Integrant configuration for the running system
   including persistence connection to store and retrieve data"
-  [system-config]
+  [db]
 
-  (mulog/log ::router-app :system-config system-config)
+  (mulog/log ::router-app :system-config db)
 
   (ring/ring-handler
    (ring/router
@@ -100,7 +102,7 @@
      ;; sanatoriocolegiales logging-servoy  API routes
      ["/api"
       ["/v1"
-       (scoreboard/routes system-config)]]]
+       (logger/routes db)]]]
 
     ;; End of All routing for Gameboard service
     ;; --------------------------------------------------
