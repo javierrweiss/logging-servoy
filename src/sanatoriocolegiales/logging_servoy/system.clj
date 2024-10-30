@@ -89,7 +89,11 @@
 
      ;; Function handling all requests, passing system environment
      ;; Configure environment for router application, e.g. database connection details, etc.
-     :handler (router/app (donut/ref [:db]))}}})
+     :handler #::donut{:start (fn inicia-handler
+                                [{{:keys [db-obj]} ::donut/config}]
+                                (µ/log ::instancia-db-al-enrutador :instancia db-obj :local-time (java.time.LocalDateTime/now))
+                                (router/app db-obj))
+                       :config {:db-obj (donut/ref [:db :datomic])}}}}})
 
 (comment
   
