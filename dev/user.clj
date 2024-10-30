@@ -94,12 +94,12 @@
   ;; Require for Clojure 1.11.x and earlier
   (require '[clojure.tools.deps.alpha.repl :refer [add-libs]])
   (add-libs '{domain/library-name {:mvn/version "1.0.0"}})
-
+  
   (start)
-  (restart)
-  (stop)
-(system)   
-     
+  (restart) 
+  (stop) 
+(tap> (system))   
+      
 
 
   ;; Clojure 1.12.x onward
