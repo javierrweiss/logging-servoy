@@ -11,9 +11,7 @@
    [clojure.instant :refer [read-instant-date]]
    [com.brunobonacci.mulog :as µ]
    [clojure.string :as string]
-   [sanatoriocolegiales.logging-servoy.persistence.persistence-api :as persistence-api]
-   [sanatoriocolegiales.logging-servoy.persistence.datomic.transaccion :as transaccion]
-   [sanatoriocolegiales.logging-servoy.persistence.datomic.consulta :as consulta])
+   [sanatoriocolegiales.logging-servoy.persistence.persistence-api :as persistence-api])
   (:import java.time.LocalDateTime))
 
 (defn origen-str->origen-kywd
