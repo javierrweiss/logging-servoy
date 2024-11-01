@@ -82,14 +82,14 @@
   ;; Require for Clojure 1.11.x and earlier
   (require '[clojure.tools.deps.alpha.repl :refer [add-libs]])
   (add-libs '{domain/library-name {:mvn/version "1.0.0"}})
-    
+        
   (start)
   (restart) 
   (stop)    
-(tap> (system))    
+(tap> (system))     
         
  
-  
+   
   ;; Clojure 1.12.x onward
   #_(add-lib 'library-name)   ; find and add library
   (clojure.repl.deps/sync-deps)               ; load dependencies in deps.edn (if not yet loaded)
