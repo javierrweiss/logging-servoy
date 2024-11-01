@@ -12,7 +12,7 @@
    [com.brunobonacci.mulog :as mulog]  ; Event Logging
    [mulog-events]
    [donut.system :as donut]
-   [hyperfiddle.rcf]))                    ; Global context & Tap publisher
+   [hyperfiddle.rcf]))                    
 
 ;; ---------------------------------------------------------
 ;; Help
@@ -81,14 +81,17 @@
 (comment
   ;; Require for Clojure 1.11.x and earlier
   (require '[clojure.tools.deps.alpha.repl :refer [add-libs]])
-  (add-libs '{domain/library-name {:mvn/version "1.0.0"}})
-        
+  (add-libs '{domain/library-name {:mvn/version "1.0.0"}}) 
+  
+  (clojure.tools.namespace.repl/refresh)
+   
   (start)
   (restart) 
-  (stop)    
-(tap> (system))     
+  (stop)     
+
+  (tap> (system))     
         
- 
+  
    
   ;; Clojure 1.12.x onward
   #_(add-lib 'library-name)   ; find and add library

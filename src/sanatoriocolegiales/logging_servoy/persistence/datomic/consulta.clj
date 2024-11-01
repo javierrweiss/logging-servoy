@@ -10,7 +10,8 @@
                              [?e :evento/estado ?est]
                              [?est :estado/excepcion _]])
 
-(def excepcion-por-origen '[:find (pull ?e [:paciente/historia-clinica-unica
+(def excepcion-por-origen '[:find (pull ?e [:db/id
+                                            :paciente/historia-clinica-unica
                                             :paciente/historia-clinica
                                             :evento/nombre
                                             :evento/fecha
@@ -27,7 +28,8 @@
                            :where [_ :evento/origen ?e]
                            [?e :db/ident ?nombre]])
 
-(def evento-por-hc '[:find (pull ?e [:paciente/historia-clinica-unica
+(def evento-por-hc '[:find (pull ?e [:db/id
+                                     :paciente/historia-clinica-unica
                                      :evento/nombre
                                      :evento/fecha
                                      {:evento/estado [:estado/excepcion :estado/ok]}
@@ -38,7 +40,8 @@
                      :where
                      [?e :paciente/historia-clinica ?h]])
 
-(def evento-por-hcu '[:find (pull ?e [:paciente/historia-clinica
+(def evento-por-hcu '[:find (pull ?e [:db/id
+                                      :paciente/historia-clinica
                                       :evento/nombre
                                       :evento/fecha
                                       {:evento/estado [:estado/excepcion :estado/ok]}
@@ -55,6 +58,19 @@
                                    :where
                                    [?e :evento/nombre ?nombre]
                                    [(re-seq ?evento ?nombre)]])
+
+(defn obtener-por-id
+  [db id]
+  (when-not db 
+    (throw (IllegalArgumentException. "La instancia de la base de datos es nula")))
+  (d/q '[:find (pull ?id [* 
+                          {:evento/origen [:db/ident]}
+                          {:evento/estado [:db/ident :estado/excepcion :estado/ok]}
+                          {:paciente/tipo [:db/ident]}])
+         :in $ ?id
+         :where [?id :evento/nombre _]]
+       db
+       id))
  
 (defn buscar-excepcion-desde
   [db fecha]
@@ -109,13 +125,16 @@
 
 (comment
   (def conn (-> (:donut.system/instances (system-repl/system))
-               :db
-               :datomic))
+                :db
+                :datomic))
   (def db (d/db conn))
-  (tap> (buscar-eventos-por-historia-clinica db 3167170)) 
+  (tap> (buscar-eventos-por-historia-clinica db 21100)) 
   (tap> (buscar-eventos-por-historia-clinica-unica db 295550))
   (tap> (buscar-eventos-por-patron-de-nombre db "Anat"))
   (tap> (obtener-origenes-eventos db))  
   (tap> (buscar-excepcion-por-origen db :evento/cirugia))
   (tap> (buscar-excepcion-desde db "2024-05-14"))
-  ) 
+
+   (obtener-por-id db 17592186045429)
+  
+  :rcf) 

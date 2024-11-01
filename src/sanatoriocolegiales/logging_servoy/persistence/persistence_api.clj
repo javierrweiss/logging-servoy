@@ -13,6 +13,7 @@
   (excepcion-por-origen [db origen] "Obtiene excepciones por sector (e.g. cirugia, uti, uco, etc.)")
   (eventos-por-historia-clinica [db hc])
   (eventos-por-historia-clinica-unica [db hcu])
+  (evento-por-id [db id])
   (eventos-por-nombre [db nombre] "Obtiene los eventos con nombres iguales o similares al argumento")
   (obtener-todos-los-eventos [db] "Obtiene los eventos registrados en la base"))
 
@@ -40,9 +41,13 @@
   (eventos-por-historia-clinica-unica [db hcu]
     (let [db (transaccion/obtener-estado-db! db)]
       (consulta/buscar-eventos-por-historia-clinica-unica db hcu)))
+  (evento-por-id [db id]
+    (let [db (transaccion/obtener-estado-db! db)]
+      (consulta/obtener-por-id db id)))
   (eventos-por-nombre [db nombre]
     (let [db (transaccion/obtener-estado-db! db)]
       (consulta/buscar-eventos-por-patron-de-nombre db nombre)))
   (obtener-todos-los-eventos [db]
     (let [db (transaccion/obtener-estado-db! db)]
       (consulta/obtener-origenes-eventos db))))
+
