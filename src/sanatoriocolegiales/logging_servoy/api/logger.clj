@@ -83,7 +83,16 @@
       (status 204))))
 
 (defn borrar-log
-  [conexion request])
+  [conexion {{:keys [id]} :path-params}]
+  (try
+    (persistence-api/eliminar conexion [{:db/excise (Long/parseLong id)}])
+    (catch Exception e (let [msj (ex-message e)]
+                         (µ/log ::error-eliminacion-log :mensaje msj :id id :fecha (LocalDateTime/now))
+                         (throw
+                          (ex-info
+                           "Hubo un error al intentar eliminar registro"
+                           {:sanatoriocolegiales.logging-servoy.middleware/excepcion-persistencia msj})))))
+  (status 200))
 
 (defn obtener-excepciones-por-fecha
   [conexion request])
@@ -144,9 +153,14 @@
                                                 ::convenios/nro_lote])}}}]
    ["/convenios/:id"
     {:swagger {:tags ["Actualización y eliminación de logs para Convenios profesionales"]}
-     :delete {:parameters {:id ::evento/id}
+     :delete {:parameters {:path {:id ::evento/id}}
               :handler (partial borrar-log system-config)}
-     :put {:parameters {:id ::evento/id}
+     :put {:parameters {:path {:id ::evento/id}
+                        :body (s/keys :req-un [::evento/nombre
+                                               ::evento/origen
+                                               ::evento/fecha
+                                               ::convenios/contador_registros
+                                               ::convenios/nro_lote])}
            :handler (partial actualizar-log system-config)}}]
    ["/excepciones_desde"
     {:swagger {:tags ["Excepciones por fecha"]}
@@ -171,7 +185,7 @@
 
   (def cnn (-> (:donut.system/instances (system-repl/system))
                :db
-               :datomic))
+               :datomic)) 
 
   (let [body-params {:nombre "EVENTO X"
                      :origen "UTI"

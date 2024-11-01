@@ -82,6 +82,7 @@
   (def cnn (-> (:donut.system/instances (system-repl/system))
                :db
                :datomic))
+  
   (ejecutar! cnn [{:evento/origen {:db/ident :evento/uti},
                    :evento/nombre "EVENTO ACTUALIZADO OTRA VEZ",
                    :paciente/historia-clinica 55,
@@ -89,6 +90,8 @@
                    :evento/estado {:estado/ok ["ewewwewe"]},
                    :paciente/tipo {:db/ident :paciente/internado},
                    :evento/fecha #inst "2024-11-01T12:10:00.000-00:00"}])
+  
+  (ejecutar! cnn [{:db/excise 17592186045429}])
 
   (def db (d/db cnn))
 
@@ -273,7 +276,7 @@
          :where [?id :evento/nombre _ ?tx]]
        db
        17592186045429)
-
+ 
   (d/q '[:find ?tx (pull ?id [* {:evento/origen [:db/ident]} {:paciente/tipo [:db/ident]}])
          :in $ ?id
          :where [?id :evento/nombre _ ?tx]]

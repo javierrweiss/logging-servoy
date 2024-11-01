@@ -130,11 +130,11 @@
   (def db (d/db conn))
   (tap> (buscar-eventos-por-historia-clinica db 21100)) 
   (tap> (buscar-eventos-por-historia-clinica-unica db 295550))
-  (tap> (buscar-eventos-por-patron-de-nombre db "Anat"))
+  (tap> (buscar-eventos-por-patron-de-nombre db "CONV"))
   (tap> (obtener-origenes-eventos db))  
-  (tap> (buscar-excepcion-por-origen db :evento/cirugia))
+  (tap> (buscar-excepcion-por-origen db :evento/convenios))
   (tap> (buscar-excepcion-desde db "2024-05-14"))
 
-   (obtener-por-id db 17592186045429)
-  
+   (obtener-por-id db 17592186045454)
+   
   :rcf) 
