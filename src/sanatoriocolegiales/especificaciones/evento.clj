@@ -6,6 +6,7 @@
 (s/def ::nombre string?)
 (s/def ::origen #{"uti" "uco" "cirugia" "convenios" "hcdm" "UTI" "UCO" "CIRUGIA" "CONVENIOS" "HCDM"})
 (s/def ::fecha (s/and string? #(re-matches patron-fecha %)))
+(s/def ::id number?)
  
 (tests
  (s/valid? ::origen ::uti) := false
