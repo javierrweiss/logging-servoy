@@ -58,7 +58,7 @@
   [conexion {:keys [path-params body-params uri]}]
   (let [id (Long/parseLong (:id path-params))
         when-coll-first (fn [x] (if (coll? x) (first x) x))
-        actualizacion (-> (crear-registro body-params uri) 
+        actualizacion (-> (crear-registro body-params uri)
                           (assoc :db/id id))
         existente (-> (try
                         (persistence-api/evento-por-id conexion id)
@@ -69,21 +69,17 @@
                                                "Hubo un error al buscar registro por id"
                                                {:sanatoriocolegiales.logging-servoy.middleware/excepcion-persistencia msj})))))
                       when-coll-first
-                      when-coll-first)] 
-    (tap> {:iguales-actual-y-existente? (= actualizacion existente)
-           :actual actualizacion
-           :existente existente}) 
+                      when-coll-first)]
     (if-not (= actualizacion existente)
-      (try
-        (tap> "No son iguales")
-        (persistence-api/actualizar conexion [actualizacion])
-        (status 201)
-        (catch Exception e (let [msj (ex-message e)]
-                             (µ/log ::error-actualizacion-log :mensaje msj :regitro actualizacion :fecha (LocalDateTime/now) :uri uri)
-                             (throw
-                              (ex-info
-                               "Hubo un error al intentar actualizar registro"
-                               {:sanatoriocolegiales.logging-servoy.middleware/excepcion-persistencia msj})))))
+      (do (try
+            (persistence-api/actualizar conexion [actualizacion])
+            (catch Exception e (let [msj (ex-message e)]
+                                 (µ/log ::error-actualizacion-log :mensaje msj :regitro actualizacion :fecha (LocalDateTime/now) :uri uri)
+                                 (throw
+                                  (ex-info
+                                   "Hubo un error al intentar actualizar registro"
+                                   {:sanatoriocolegiales.logging-servoy.middleware/excepcion-persistencia msj})))))
+          (status 201))
       (status 204))))
 
 (defn borrar-log
@@ -236,6 +232,7 @@
       :paciente/tipo {:db/ident :paciente/internado},
       :evento/fecha #inst "2024-05-13T13:23:43.495-00:00",
       :db/id 17592186045429})
+  
 
   (tap> 121)
   :rcf)
