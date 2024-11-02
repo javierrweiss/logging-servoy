@@ -6,43 +6,17 @@
    [sanatoriocolegiales.especificaciones.evento :as evento]
    [sanatoriocolegiales.especificaciones.convenios :as convenios]
    [sanatoriocolegiales.especificaciones.paciente :as paciente]
-   [sanatoriocolegiales.especificaciones.estado :as estado]
-   [clojure.core.match :refer [match]]
-   [clojure.instant :refer [read-instant-date]]
-   [com.brunobonacci.mulog :as µ]
-   [clojure.string :as string]
+   [sanatoriocolegiales.especificaciones.estado :as estado] 
+   [com.brunobonacci.mulog :as µ] 
    [sanatoriocolegiales.logging-servoy.persistence.persistence-api :as persistence-api]
+   [sanatoriocolegiales.logging-servoy.helpers.api-helpers :as h]
    [hyperfiddle.rcf :refer [tests]])
   (:import java.time.LocalDateTime))
 
-(defn origen-str->origen-kywd
-  [org]
-  (match [(string/lower-case org)]
-    ["uco"] :evento/uco
-    ["uti"] :evento/uti
-    ["convenios"] :evento/convenios
-    ["hcdm"] :evento/hcdm
-    ["cirugia"] :evento/cirugia))
-
-(defn crear-registro
-  [body-params uri]
-  (let [base-map {:evento/nombre (:nombre body-params)
-                  :evento/origen {:db/ident (origen-str->origen-kywd (:origen body-params))}
-                  :evento/fecha (read-instant-date (:fecha body-params))}]
-    (condp re-seq uri
-      #"\/api\/v1\/cirugia" (cond-> base-map
-                              (:historia_clinica body-params) (assoc :paciente/historia-clinica (:historia_clinica body-params))
-                              (:historia_clinica_unica body-params) (assoc :paciente/historia-clinica-unica (:historia_clinica_unica body-params))
-                              (:tipo body-params) (assoc :paciente/tipo {:db/ident (-> (str "paciente/" (:tipo body-params)) keyword)})
-                              (:ok body-params) (assoc :evento/estado {:estado/ok (:ok body-params)})
-                              (:excepcion body-params) (assoc :evento/estado {:estado/excepcion (:excepcion body-params)}))
-      #"\/api\/v1\/convenios" (assoc base-map :convenios/nro-lote (:nro_lote body-params) :convenios/contador-registros (:contador_registros body-params))
-      (throw (ex-info "Ruta no encontrada" {:parametros body-params
-                                            :uri uri})))))
 
 (defn crear-log
   [conexion {:keys [body-params uri]}]
-  (let [registro (crear-registro body-params uri)]
+  (let [registro (h/crear-registro body-params uri)]
     (try
       (persistence-api/insertar conexion [registro])
       (created "")
@@ -58,7 +32,7 @@
   [conexion {:keys [path-params body-params uri]}]
   (let [id (Long/parseLong (:id path-params))
         when-coll-first (fn [x] (if (coll? x) (first x) x))
-        actualizacion (-> (crear-registro body-params uri)
+        actualizacion (-> (h/crear-registro body-params uri)
                           (assoc :db/id id))
         existente (-> (try
                         (persistence-api/evento-por-id conexion id)
@@ -81,6 +55,9 @@
                                    {:sanatoriocolegiales.logging-servoy.middleware/excepcion-persistencia msj})))))
           (status 201))
       (status 204))))
+
+(defn actualizar-log-parcialmente
+  [conexion {:keys [body-params path-params]}])
 
 (defn borrar-log
   [conexion {{:keys [id]} :path-params}]
@@ -118,15 +95,15 @@
     {:swagger {:tags ["Logging para protocolos ambulatorio e internado, UTI, UCO e Historia Clínica Digital Ambulatoria"]}
      :post {:summary "Crea una entrada en el log"
             :handler (partial crear-log system-config)
-            :parameters {:body (s/keys :req-un [(and ::evento/nombre
-                                                     ::evento/origen
-                                                     ::evento/fecha
-                                                     (and (or ::estado/ok ::estado/excepcion)
-                                                          (or (and ::paciente/tipo ::paciente/historia_clinica)
-                                                              (and ::paciente/tipo ::paciente/historia_clinica_unica)
-                                                              (and ::paciente/historia_clinica
-                                                                   ::paciente/historia_clinica_unica
-                                                                   ::paciente/tipo))))])}}}]
+            :parameters {:body (s/keys :req [(and ::evento/nombre
+                                                  ::evento/origen
+                                                  ::evento/fecha
+                                                  (and (or ::estado/ok ::estado/excepcion)
+                                                       (or (and ::paciente/tipo ::paciente/historia_clinica)
+                                                           (and ::paciente/tipo ::paciente/historia_clinica_unica)
+                                                           (and ::paciente/historia_clinica
+                                                                ::paciente/historia_clinica_unica
+                                                                ::paciente/tipo))))])}}}]
    ["/cirugia/:id"
     {:swagger {:tags ["Actualizar o borrar logs de cirugía"]}
      :delete {:handler (partial borrar-log system-config)
@@ -141,7 +118,17 @@
                                                              (and ::paciente/tipo ::paciente/historia_clinica_unica)
                                                              (and ::paciente/historia_clinica
                                                                   ::paciente/historia_clinica_unica
-                                                                  ::paciente/tipo))))])}}}]
+                                                                  ::paciente/tipo))))])}}
+     :patch {:handler (partial actualizar-log-parcialmente system-config)
+             :parameters {:path-params {:id ::evento/id}
+                          :body (s/keys :req-un [(or ::evento/nombre
+                                                     ::evento/origen
+                                                     ::evento/fecha
+                                                     ::estado/ok
+                                                     ::estado/excepcion
+                                                     ::paciente/tipo
+                                                     ::paciente/historia_clinica
+                                                     ::paciente/historia_clinica_unica)])}}}]
    ["/convenios"
     {:swagger {:tags ["Logging para Convenios profesionales"]}
      :post {:summary "Crea una entrada en el log"
@@ -161,7 +148,17 @@
                                                ::evento/fecha
                                                ::convenios/contador_registros
                                                ::convenios/nro_lote])}
-           :handler (partial actualizar-log system-config)}}]
+           :handler (partial actualizar-log system-config)}
+     :patch {:handler (partial actualizar-log-parcialmente system-config)
+             :parameters {:path-params {:id ::evento/id}
+                          :body (s/keys :req-un [(or ::evento/nombre
+                                                     ::evento/origen
+                                                     ::evento/fecha
+                                                     ::estado/ok
+                                                     ::estado/excepcion
+                                                     ::paciente/tipo
+                                                     ::paciente/historia_clinica
+                                                     ::paciente/historia_clinica_unica)])}}}]
    ["/excepciones_desde"
     {:swagger {:tags ["Excepciones por fecha"]}
      :get {:handler (partial obtener-excepciones-por-fecha system-config)}}]
@@ -208,10 +205,10 @@
         (:tipo body-params) (assoc :paciente/tipo (-> (str "paciente/" (:tipo body-params)) keyword))
         (:ok body-params) (assoc :evento/estado {:estado/ok (:ok body-params)})
         (:excepcion body-params) (assoc :evento/estado {:estado/excepcion (:excepcion body-params)}))
-    #_(persistence-api/insertar cnn [(crear-registro body-params "/api/v1/cirugia")])
-    (crear-registro body-params "/api/v1/cirugia")
-    #_(crear-registro body-params "/api/v1")
-    #_(crear-registro body-params2 "/api/v1/cirugia/17592186045429")
+    #_(persistence-api/insertar cnn [(h/crear-registro body-params "/api/v1/cirugia")])
+    (h/crear-registro body-params "/api/v1/cirugia")
+    #_(h/crear-registro body-params "/api/v1")
+    #_(h/crear-registro body-params2 "/api/v1/cirugia/17592186045429")
     #_(crear-log cnn {:body-params body-params2
                       :uri "/api/v1/cirugia"}))
 
@@ -221,32 +218,8 @@
 
   (persistence-api/eventos-por-nombre cnn "EVEM")
 
-  (re-seq #"\/api\/v1\/cirugia\/" "/api/v1/cirugia/17592186045429")
-
-  (condp re-seq "/api/v1/cirugia" #_"/api/v1/cirugia/17592186045429"
-         #"\/api\/v1\/cirugia\/\d++" "Primero"
-         #"\/api\/v1\/cirugia" "Segundo"
-         "Ninguno")
-
-  (= {:db/id 17592186045429,
-      :evento/origen {:db/ident :evento/cirugia},
-      :evento/nombre "ERROR_GUARDA_ANATOMIA_PATOLOGICA",
-      :paciente/historia-clinica 3173210,
-      :paciente/historia-clinica-unica 843682,
-      :evento/estado
-      {:db/id 17592186045430, :estado/excepcion ["{\"registro\":[]}"]},
-      :paciente/tipo {:db/ident :paciente/internado},
-      :evento/fecha #inst "2024-05-13T13:23:43.495-00:00"}
-     {:evento/origen {:db/ident :evento/cirugia},
-      :evento/nombre "ERROR_GUARDA_ANATOMIA_PATOLOGICA",
-      :paciente/historia-clinica 3173210,
-      :paciente/historia-clinica-unica 843682,
-      :evento/estado
-      {:db/id 17592186045430, :estado/excepcion ["{\"registro\":[]}"]},
-      :paciente/tipo {:db/ident :paciente/internado},
-      :evento/fecha #inst "2024-05-13T13:23:43.495-00:00",
-      :db/id 17592186045429})
+  
   
 
-  (tap> 121)
+  
   :rcf)
