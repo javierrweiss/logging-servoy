@@ -62,7 +62,8 @@
 (defn obtener-por-id
   [db id]
   (when-not db 
-    (throw (IllegalArgumentException. "La instancia de la base de datos es nula")))
+    (throw (ex-info "La instancia de la base de datos es nula"
+                    {:type :sanatoriocolegiales.logging-servoy.middleware/excepcion-persistencia})))
   (d/q '[:find (pull ?id [* 
                           {:evento/origen [:db/ident]}
                           {:evento/estado [:db/ident :estado/excepcion :estado/ok]}
@@ -75,9 +76,12 @@
 (defn buscar-excepcion-desde
   [db fecha]
   (cond
-    (nil? db) (throw (IllegalArgumentException. "La instancia de la base de datos es nula"))
-    (not fecha) (throw (IllegalArgumentException. "Debe introducir una fecha en formato string"))
-    (not (string? fecha)) (throw (IllegalArgumentException. "La fecha debe estar en formato string"))
+    (nil? db) (throw (ex-info "La instancia de la base de datos es nula"
+                              {:type :sanatoriocolegiales.logging-servoy.middleware/excepcion-persistencia}))
+    (not fecha) (throw (ex-info "Debe introducir una fecha en formato string"
+                                {:type :sanatoriocolegiales.logging-servoy.middleware/argumento-ilegal}))
+    (not (string? fecha)) (throw (ex-info "La fecha debe estar en formato string"
+                                          {:type :sanatoriocolegiales.logging-servoy.middleware/argumento-ilegal}))
     :else
     (let [f (read-instant-date fecha)]
       (d/q excepcion-desde-fecha db f))))
@@ -85,39 +89,48 @@
 (defn buscar-excepcion-por-origen
   [db origen]
   (cond 
-    (nil? db) (throw (IllegalArgumentException. "La instancia de la base de datos es nula"))
-    (or (not origen) (not (qualified-keyword? origen))) (throw (IllegalArgumentException. "El origen debe ser un keyword calificado ajustado al esquema, e.g. :evento/uco, :evento/convenios, etc."))
+    (nil? db) (throw (ex-info "La instancia de la base de datos es nula"
+                              {:type :sanatoriocolegiales.logging-servoy.middleware/excepcion-persistencia}))
+    (or (not origen) (not (qualified-keyword? origen))) (throw (ex-info "El origen debe ser un keyword calificado ajustado al esquema, e.g. :evento/uco, :evento/convenios, etc."
+                                                                        {:type :sanatoriocolegiales.logging-servoy.middleware/argumento-ilegal}))
     :else
         (d/q excepcion-por-origen db origen)))
  
 (defn buscar-eventos-por-historia-clinica
   [db hc]
   (cond
-    (nil? db) (throw (IllegalArgumentException. "La instancia de la base de datos es nula"))
-    (or (not hc) (not (number? hc))) (throw (IllegalArgumentException. "El hc debe ser un número"))
+    (nil? db) (throw (ex-info "La instancia de la base de datos es nula"
+                              {:type :sanatoriocolegiales.logging-servoy.middleware/excepcion-persistencia}))
+    (or (not hc) (not (number? hc))) (throw (ex-info "El hc debe ser un número"
+                                                     {:type :sanatoriocolegiales.logging-servoy.middleware/argumento-ilegal}))
     :else
     (d/q evento-por-hc db hc)))
 
 (defn buscar-eventos-por-historia-clinica-unica
   [db hcu]
   (cond
-    (nil? db) (throw (IllegalArgumentException. "La instancia de la base de datos es nula"))
-    (or (not hcu) (not (number? hcu))) (throw (IllegalArgumentException. "El hcu debe ser un número"))
+    (nil? db) (throw (ex-info "La instancia de la base de datos es nula"
+                              {:type :sanatoriocolegiales.logging-servoy.middleware/excepcion-persistencia}))
+    (or (not hcu) (not (number? hcu))) (throw (ex-info "El hcu debe ser un número"
+                                                       {:type :sanatoriocolegiales.logging-servoy.middleware/argumento-ilegal}))
     :else
     (d/q evento-por-hcu db hcu)))
 
 (defn obtener-origenes-eventos
   [db]
   (cond
-    (nil? db) (throw (IllegalArgumentException. "La instancia de la base de datos es nula")) 
+    (nil? db) (throw (ex-info "La instancia de la base de datos es nula"
+                              {:type :sanatoriocolegiales.logging-servoy.middleware/excepcion-persistencia})) 
     :else
     (d/q origenes-de-eventos db)))
 
 (defn buscar-eventos-por-patron-de-nombre
   [db patron]
   (cond
-    (nil? db) (throw (IllegalArgumentException. "La instancia de la base de datos es nula"))
-    (not (string? patron)) (throw (IllegalArgumentException. "El patrón de búsqueda debe ser un string"))
+    (nil? db) (throw (ex-info "La instancia de la base de datos es nula"
+                              {:type :sanatoriocolegiales.logging-servoy.middleware/excepcion-persistencia}))
+    (not (string? patron)) (throw (ex-info "El patrón de búsqueda debe ser un string"
+                                           {:type :sanatoriocolegiales.logging-servoy.middleware/argumento-ilegal}))
     :else
     (let [patron (re-pattern (str "(?ix)" patron))]
       (d/q evento-por-patron-de-nombre db patron))))

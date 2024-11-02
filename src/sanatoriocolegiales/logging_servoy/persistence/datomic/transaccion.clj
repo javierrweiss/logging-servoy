@@ -8,14 +8,14 @@
   (when-not conn
     (throw (ex-info 
             "No existe conexión a la base de datos" 
-            {:sanatoriocolegiales.logging-servoy.middleware/excepcion-persistencia "No existe conexión a la base de datos"})))
+            {:type :sanatoriocolegiales.logging-servoy.middleware/excepcion-persistencia})))
   (try
     @(d/transact conn log-schema)
     (catch Exception e (let [msj (ex-message e)] 
                          (µ/log ::error-al-registrar-esquema :mensaje msj)
                          (throw (ex-info
-                                 "Hubo un error al persistir el esquema"
-                                 {:sanatoriocolegiales.logging-servoy.middleware/excepcion-persistencia "Hubo un error al persistir el esquema"
+                                 (str "Hubo un error al persistir el esquema: " msj)
+                                 {:type :sanatoriocolegiales.logging-servoy.middleware/excepcion-persistencia 
                                   :mensaje msj}))))))
 
 (defn ejecutar!
@@ -23,14 +23,14 @@
   (when-not conn
     (throw (ex-info
             "No existe conexión a la base de datos"
-            {:sanatoriocolegiales.logging-servoy.middleware/excepcion-persistencia "No existe conexión a la base de datos"})))
+            {:type :sanatoriocolegiales.logging-servoy.middleware/excepcion-persistencia})))
   (try
     @(d/transact conn datos)
     (catch Exception e (let [msj (ex-message e)]
                          (µ/log ::error-al-ejecutar-transaccion :mensaje (ex-message e) :datos datos)
                          (throw (ex-info
-                                 "Hubo un error al persistir los datos"
-                                 {:sanatoriocolegiales.logging-servoy.middleware/excepcion-persistencia "Hubo un error al persistir el esquema"
+                                 (str "Hubo un error al persistir los datos: " msj)
+                                 {:type :sanatoriocolegiales.logging-servoy.middleware/excepcion-persistencia 
                                   :datos datos
                                   :mensaje msj}))))))
 
@@ -39,14 +39,14 @@
   (when-not conn
     (throw (ex-info
             "No existe conexión a la base de datos"
-            {:sanatoriocolegiales.logging-servoy.middleware/excepcion-persistencia "No existe conexión a la base de datos"})))
+            {:type :sanatoriocolegiales.logging-servoy.middleware/excepcion-persistencia})))
   (try
     (d/db conn)
     (catch Exception e (let [msj (ex-message e)]
                          (µ/log ::error-al-obtener-db :mensaje (ex-message e))
                          (throw (ex-info
                                  "Hubo un error al persistir los datos"
-                                 {:sanatoriocolegiales.logging-servoy.middleware/excepcion-persistencia "Hubo un error al persistir el esquema" 
+                                 {:type :sanatoriocolegiales.logging-servoy.middleware/excepcion-persistencia
                                   :mensaje msj}))))))
 
 (defn actualizar-atributo-esquema
@@ -54,7 +54,7 @@
   [ident-anterior ident-nuevo]
   (if-not (and (qualified-keyword? ident-anterior) (qualified-keyword? ident-nuevo))
     (throw (ex-info "Los argumentos deben ser keywords calificados que se correspondan con los atributos de la base de datos"
-                    {:sanatoriocolegiales.logging-servoy.middleware/argumento-ilegal "Los argumentos deben ser keywords calificados que se correspondan con los atributos de la base de datos"
+                    {:type :sanatoriocolegiales.logging-servoy.middleware/argumento-ilegal 
                      :argumentos [ident-anterior ident-nuevo]}))
     {:db/id ident-anterior
      :db/ident ident-nuevo}))
@@ -79,19 +79,19 @@
     (cond
       (not (qualified-keyword? ident))
       (throw (ex-info "El ident debe ser un keyword calificado" 
-                      {:sanatoriocolegiales.logging-servoy.middleware/argumento-ilegal "El ident debe ser un keyword calificado"}))
+                      {:type :sanatoriocolegiales.logging-servoy.middleware/argumento-ilegal}))
       (not (some tipos-permitidos [tipo-dato]))
       (throw (ex-info "tipo-dato debe ser un keyword entre los permitidos https://docs.datomic.com/schema/schema-reference.html#db-valuetype"
-                      {:sanatoriocolegiales.logging-servoy.middleware/argumento-ilegal "tipo-dato debe ser un keyword entre los permitidos https://docs.datomic.com/schema/schema-reference.html#db-valuetype"}))
+                      {:type :sanatoriocolegiales.logging-servoy.middleware/argumento-ilegal}))
       (not (some #{:db.cardinality/one :db.cardinality/many} [cardinalidad]))
       (throw (ex-info "cardinalidad debe ser :db.cardinality/one ó :db.cardinality/many"
-                      {:sanatoriocolegiales.logging-servoy.middleware/argumento-ilegal "cardinalidad debe ser :db.cardinality/one ó :db.cardinality/many"}))
+                      {:type :sanatoriocolegiales.logging-servoy.middleware/argumento-ilegal}))
       (or (not doc) (not (string? doc)))
       (throw (ex-info "doc debe ser un string"
-                      {:sanatoriocolegiales.logging-servoy.middleware/argumento-ilegal "doc debe ser un string"}))
+                      {:type :sanatoriocolegiales.logging-servoy.middleware/argumento-ilegal}))
       (not (boolean? unico?))
       (throw (ex-info "unico? debe ser un booleano"
-                      {:sanatoriocolegiales.logging-servoy.middleware/argumento-ilegal "unico? debe ser un booleano"}))
+                      {:type :sanatoriocolegiales.logging-servoy.middleware/argumento-ilegal}))
       :else (cond-> {:db/ident ident
                      :db/valueType tipo-dato
                      :db/cardinality cardinalidad

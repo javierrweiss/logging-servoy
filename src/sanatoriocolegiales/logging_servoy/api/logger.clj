@@ -9,7 +9,8 @@
 
 (defn crear-log
   [conexion {:keys [body-params]}]
-  (let [registro (helpers/peticion->registro body-params)] 
+  (let [registro (helpers/peticion->registro body-params)]
+    (tap> registro)
     (try
       (persistence-api/insertar conexion [registro])
       (created "")
@@ -17,8 +18,8 @@
                            (µ/log ::error-ingreso-log :mensaje msj :fecha (LocalDateTime/now))
                            (throw
                             (ex-info
-                             "Hubo un error al persistir los datos"
-                             {:sanatoriocolegiales.logging-servoy.middleware/excepcion-persistencia msj})))))))
+                             (str "Hubo un error al persistir los datos: " msj)
+                             {:type :sanatoriocolegiales.logging-servoy.middleware/excepcion-persistencia})))))))
 
   (defn actualizar-log
     "Actualiza log asegurando idempotencia de la operación"
@@ -36,8 +37,9 @@
                                                (µ/log ::error-busqueda-log-por-id :mensaje msj :id id :params path-params :fecha (LocalDateTime/now))
                                                (throw
                                                 (ex-info
-                                                 "Hubo un error al buscar registro por id"
-                                                 {:sanatoriocolegiales.logging-servoy.middleware/excepcion-persistencia msj})))))
+                                                 (str "Hubo un error al buscar registro por id: " msj)
+                                                 {:type :sanatoriocolegiales.logging-servoy.middleware/excepcion-persistencia
+                                                  :mensaje msj})))))
                         when-coll-first
                         when-coll-first)]
       (if-not (= actualizacion existente)
@@ -47,8 +49,8 @@
                                    (µ/log ::error-actualizacion-log :mensaje msj :regitro actualizacion :fecha (LocalDateTime/now))
                                    (throw
                                     (ex-info
-                                     "Hubo un error al intentar actualizar registro"
-                                     {:sanatoriocolegiales.logging-servoy.middleware/excepcion-persistencia msj})))))
+                                     (str "Hubo un error al intentar actualizar registro: " msj)
+                                     {:type :sanatoriocolegiales.logging-servoy.middleware/excepcion-persistencia})))))
             (status 201))
         (status 204))))
 
@@ -63,8 +65,8 @@
                          (µ/log ::error-eliminacion-log :mensaje msj :id id :fecha (LocalDateTime/now))
                          (throw
                           (ex-info
-                           "Hubo un error al intentar eliminar registro"
-                           {:sanatoriocolegiales.logging-servoy.middleware/excepcion-persistencia msj})))))
+                           (str "Hubo un error al intentar eliminar registro: " msj)
+                           {:type :sanatoriocolegiales.logging-servoy.middleware/excepcion-persistencia})))))
   (status 200))
 
 (defn obtener-excepciones-por-fecha

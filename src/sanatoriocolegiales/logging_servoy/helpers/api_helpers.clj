@@ -20,13 +20,14 @@
   (try
     (-> peticion
         (update :evento/fecha read-instant-date)
-        (update :evento/origen keyword))
+        (update :evento/origen keyword)
+        (update :paciente/tipo (fn [value] (keyword "paciente" value))))
     (catch Exception e (let [msj (ex-message e)]
                          (µ/log ::error-ingreso-log :mensaje msj :fecha (LocalDateTime/now))
                          (throw
                           (ex-info
-                           "Argumento ilegal"
-                           {:sanatoriocolegiales.logging-servoy.middleware/argumento-ilegal msj}))))))
+                           (str "Argumento ilegal: " msj)
+                           {:type :sanatoriocolegiales.logging-servoy.middleware/argumento-ilegal}))))))
 
 (def origenes (->> log-schema
                    (map :db/ident)
@@ -184,7 +185,7 @@
  (m/validate esquema-evento-opcional {:paciente/historia_clinica 125}) := true
 
 ;;                              ESQUEMA CONVENIOS
-
+ 
 ;; Devuelve falso cuando mapa contiene llave no presente en spec                                                   
  (m/validate esquema-convenio-completo {:evento/nombre "ccas"
                                         :evento/origen  :a/sdsadssa
@@ -214,41 +215,46 @@
 
 
 ;;                          PETICIONES A REGISTRO
- (let [body-params {:evento/nombre "EVENTO X"
-                    :evento/origen "origen/uco"
-                    :evento/fecha "2024-02-20"
-                    :paciente/historia_clinica 3212
-                    :estado/ok ["wes" "ssdsd"]
-                    :paciente/tipo "internado"}
-       body-params2 {:evento/nombre "EVENTO X"
-                     :evento/origen "origen/uti"
-                     :evento/fecha "2024-02-22"
-                     :paciente/historia_clinica 32121
-                     :paciente/historia_clinica_unica 232121
-                     :paciente/tipo "ambulatorio"
-                     :estado/excepcion ["wes" "ssdsd"]}
-       body-params3 {:evento/nombre "EVENTO X"
-                     :evento/origen "origen/uti"
-                     :evento/fecha "2024-02-40"
-                     :paciente/historia_clinica 32121
-                     :paciente/historia_clinica_unica 232121
-                     :paciente/tipo "ambulatorio"
-                     :estado/excepcion ["wes" "ssdsd"]}]
-   (peticion->registro body-params) := {:evento/nombre "EVENTO X"
-                                        :evento/origen :origen/uco
-                                        :evento/fecha (read-instant-date "2024-02-20")
-                                        :paciente/historia_clinica 3212
-                                        :estado/ok ["wes" "ssdsd"]
-                                        :paciente/tipo "internado"}
-   (peticion->registro body-params2) := {:evento/nombre "EVENTO X"
-                                         :evento/origen :origen/uti
-                                         :evento/fecha (read-instant-date "2024-02-22")
-                                         :paciente/historia_clinica 32121
-                                         :paciente/historia_clinica_unica 232121
-                                         :paciente/tipo "ambulatorio"
-                                         :estado/excepcion ["wes" "ssdsd"]}
-   (peticion->registro body-params3) :throws clojure.lang.ExceptionInfo)
- :rcf) 
+ (def body-params {:evento/nombre "EVENTO X"
+                   :evento/origen "origen/uco"
+                   :evento/fecha "2024-02-20"
+                   :paciente/historia_clinica 3212
+                   :estado/ok ["wes" "ssdsd"]
+                   :paciente/tipo "internado"})
+ 
+ (def body-params2 {:evento/nombre "EVENTO X"
+                   :evento/origen "origen/uti"
+                   :evento/fecha "2024-02-22"
+                   :paciente/historia_clinica 32121
+                   :paciente/historia_clinica_unica 232121
+                   :paciente/tipo "ambulatorio"
+                   :estado/excepcion ["wes" "ssdsd"]})
+ 
+ (def body-params3 {:evento/nombre "EVENTO X"
+                    :evento/origen "origen/uti"
+                    :evento/fecha "2024-02-40"
+                    :paciente/historia_clinica 32121
+                    :paciente/historia_clinica_unica 232121
+                    :paciente/tipo "ambulatorio"
+                    :estado/excepcion ["wes" "ssdsd"]})
+ 
+ (peticion->registro body-params) := {:evento/nombre "EVENTO X"
+                                      :evento/origen :origen/uco
+                                      :evento/fecha (read-instant-date "2024-02-20")
+                                      :paciente/historia_clinica 3212
+                                      :estado/ok ["wes" "ssdsd"]
+                                      :paciente/tipo :paciente/internado}
+ 
+ (peticion->registro body-params2) := {:evento/nombre "EVENTO X"
+                                       :evento/origen :origen/uti
+                                       :evento/fecha (read-instant-date "2024-02-22")
+                                       :paciente/historia_clinica 32121
+                                       :paciente/historia_clinica_unica 232121
+                                       :paciente/tipo :paciente/ambulatorio
+                                       :estado/excepcion ["wes" "ssdsd"]}
+ (peticion->registro body-params3) :throws clojure.lang.ExceptionInfo
+ 
+ :rcf)  
  
 (comment
   (-> (m/explain esquema-evento-opcional {:evento/ok ["dsdsd" "aas"]})
