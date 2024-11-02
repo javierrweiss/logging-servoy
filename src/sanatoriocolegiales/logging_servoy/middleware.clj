@@ -12,8 +12,10 @@
   (exception/create-exception-middleware
    (merge
     exception/default-handlers
-    {::excepcion-persistencia (partial handler {:status  500
+    {::excepcion-persistencia (partial handler {:status 500
                                                 :body "Hubo un error al persistir la información en la base de datos"}) 
+     ::argumento-ilegal (partial handler {:status 400
+                                          :body "Argumento no permitido"})
      ::exception/wrap (fn [handler e request]
                         (mulog/log ::excepcion-en-solicitud :mensaje (ex-message e) :fecha (LocalDateTime/now) :solicitud request)
                         (handler e request))}))) 

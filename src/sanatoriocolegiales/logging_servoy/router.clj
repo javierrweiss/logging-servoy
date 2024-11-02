@@ -16,15 +16,16 @@
    ;; Self-documenting API
    [reitit.swagger    :as api-docs]
    [reitit.swagger-ui :as api-docs-ui]
-   ;; Provide details of parameters to API documentation UI (swagger)
-   [reitit.coercion.spec]
+   ;; Provide details of parameters to API documentation UI (swagger) 
    [reitit.ring.coercion :as coercion]
-   [reitit.ring.spec :as rrs]
+   [malli.util :as mu]
+   [reitit.coercion.malli]
+   [reitit.ring.malli]
+   [reitit.ring.spec :as spec]
    ;; Error handling
    [reitit.dev.pretty :as pretty]
    ; Event Logging
    [com.brunobonacci.mulog :as mulog]))
-
 
 (def open-api-docs
   "Open API docs general information about the service,
@@ -39,7 +40,17 @@
 
 (def router-configuration
   "Reitit configuration of coercion, data format transformation and middleware for all routing"
-  {:data {:coercion   reitit.coercion.spec/coercion
+  {:data {:coercion (reitit.coercion.malli/create
+                     {;; set of keys to include in error messages
+                      :error-keys #{#_:type :coercion :in :schema :value :errors :humanized #_:transformed}
+           ;; schema identity function (default: close all map schemas)
+                      :compile mu/closed-schema
+           ;; strip-extra-keys (affects only predefined transformers)
+                      :strip-extra-keys true
+           ;; add/set default values
+                      :default-values true
+           ;; malli options
+                      :options nil})
           :muuntaja   muuntaja/instance
           :middleware [;; swagger feature for OpenAPI documentation
                        api-docs/swagger-feature
@@ -59,7 +70,7 @@
                        [middleware-service/wrap-trace-events :trace-events]]}
    ;; pretty-print reitit exceptions for human consumptions
    :exception pretty/exception
-   :validate rrs/validate})
+   :validate spec/validate})
 
 (defn app
   [db]

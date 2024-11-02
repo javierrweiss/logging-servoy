@@ -6,32 +6,56 @@
 (defn registrar-esquema!
   [conn]
   (when-not conn
-    (throw (IllegalArgumentException. "No existe conexión a la base de datos")))
+    (throw (ex-info 
+            "No existe conexión a la base de datos" 
+            {:sanatoriocolegiales.logging-servoy.middleware/excepcion-persistencia "No existe conexión a la base de datos"})))
   (try
     @(d/transact conn log-schema)
-    (catch Exception e (µ/log ::error-al-registrar-esquema :mensaje (ex-message e)))))
+    (catch Exception e (let [msj (ex-message e)] 
+                         (µ/log ::error-al-registrar-esquema :mensaje msj)
+                         (throw (ex-info
+                                 "Hubo un error al persistir el esquema"
+                                 {:sanatoriocolegiales.logging-servoy.middleware/excepcion-persistencia "Hubo un error al persistir el esquema"
+                                  :mensaje msj}))))))
 
 (defn ejecutar!
   [conn datos]
   (when-not conn
-    (throw (IllegalArgumentException. "No existe conexión a la base de datos")))
+    (throw (ex-info
+            "No existe conexión a la base de datos"
+            {:sanatoriocolegiales.logging-servoy.middleware/excepcion-persistencia "No existe conexión a la base de datos"})))
   (try
     @(d/transact conn datos)
-    (catch Exception e (µ/log ::error-al-ejecutar-transaccion :mensaje (ex-message e) :datos datos))))
+    (catch Exception e (let [msj (ex-message e)]
+                         (µ/log ::error-al-ejecutar-transaccion :mensaje (ex-message e) :datos datos)
+                         (throw (ex-info
+                                 "Hubo un error al persistir los datos"
+                                 {:sanatoriocolegiales.logging-servoy.middleware/excepcion-persistencia "Hubo un error al persistir el esquema"
+                                  :datos datos
+                                  :mensaje msj}))))))
 
 (defn obtener-estado-db!
   [conn]
   (when-not conn
-    (throw (IllegalArgumentException. "No existe conexión a la base de datos")))
+    (throw (ex-info
+            "No existe conexión a la base de datos"
+            {:sanatoriocolegiales.logging-servoy.middleware/excepcion-persistencia "No existe conexión a la base de datos"})))
   (try
     (d/db conn)
-    (catch Exception e (µ/log ::error-al-obtener-db :mensaje (ex-message e)))))
+    (catch Exception e (let [msj (ex-message e)]
+                         (µ/log ::error-al-obtener-db :mensaje (ex-message e))
+                         (throw (ex-info
+                                 "Hubo un error al persistir los datos"
+                                 {:sanatoriocolegiales.logging-servoy.middleware/excepcion-persistencia "Hubo un error al persistir el esquema" 
+                                  :mensaje msj}))))))
 
 (defn actualizar-atributo-esquema
   "Devuelve un mapa que permite actualizar un atributo en el esquema de la base de datos"
   [ident-anterior ident-nuevo]
   (if-not (and (qualified-keyword? ident-anterior) (qualified-keyword? ident-nuevo))
-    (throw (IllegalArgumentException. "Los argumentos deben ser keywords calificados que se correspondan con los atributos de la base de datos"))
+    (throw (ex-info "Los argumentos deben ser keywords calificados que se correspondan con los atributos de la base de datos"
+                    {:sanatoriocolegiales.logging-servoy.middleware/argumento-ilegal "Los argumentos deben ser keywords calificados que se correspondan con los atributos de la base de datos"
+                     :argumentos [ident-anterior ident-nuevo]}))
     {:db/id ident-anterior
      :db/ident ident-nuevo}))
 
@@ -54,15 +78,20 @@
                            :db.type/uri}]
     (cond
       (not (qualified-keyword? ident))
-      (throw (IllegalArgumentException. "El ident debe ser un keyword calificado"))
+      (throw (ex-info "El ident debe ser un keyword calificado" 
+                      {:sanatoriocolegiales.logging-servoy.middleware/argumento-ilegal "El ident debe ser un keyword calificado"}))
       (not (some tipos-permitidos [tipo-dato]))
-      (throw (IllegalArgumentException. "tipo-dato debe ser un keyword entre los permitidos https://docs.datomic.com/schema/schema-reference.html#db-valuetype"))
+      (throw (ex-info "tipo-dato debe ser un keyword entre los permitidos https://docs.datomic.com/schema/schema-reference.html#db-valuetype"
+                      {:sanatoriocolegiales.logging-servoy.middleware/argumento-ilegal "tipo-dato debe ser un keyword entre los permitidos https://docs.datomic.com/schema/schema-reference.html#db-valuetype"}))
       (not (some #{:db.cardinality/one :db.cardinality/many} [cardinalidad]))
-      (throw (IllegalArgumentException. "cardinalidad debe ser :db.cardinality/one ó :db.cardinality/many"))
+      (throw (ex-info "cardinalidad debe ser :db.cardinality/one ó :db.cardinality/many"
+                      {:sanatoriocolegiales.logging-servoy.middleware/argumento-ilegal "cardinalidad debe ser :db.cardinality/one ó :db.cardinality/many"}))
       (or (not doc) (not (string? doc)))
-      (throw (IllegalArgumentException. "doc debe ser un string"))
+      (throw (ex-info "doc debe ser un string"
+                      {:sanatoriocolegiales.logging-servoy.middleware/argumento-ilegal "doc debe ser un string"}))
       (not (boolean? unico?))
-      (throw (IllegalArgumentException. "unico? debe ser un booleano"))
+      (throw (ex-info "unico? debe ser un booleano"
+                      {:sanatoriocolegiales.logging-servoy.middleware/argumento-ilegal "unico? debe ser un booleano"}))
       :else (cond-> {:db/ident ident
                      :db/valueType tipo-dato
                      :db/cardinality cardinalidad
@@ -93,7 +122,20 @@
   
   (ejecutar! cnn [{:db/excise 17592186045429}])
 
+  (ejecutar! cnn [{:db/id    :paciente/historia-clinica
+                   :db/ident :paciente/historia_clinica}
+                  {:db/id    :paciente/historia-clinica-unica
+                   :db/ident :paciente/historia_clinica_unica}
+                  {:db/id    :convenios/nro-lote
+                   :db/ident :convenios/nro_lote}
+                  {:db/id    :convenios/contador-registros
+                   :db/ident :convenios/contador_registros}])
+
   (def db (d/db cnn))
+
+  (d/q '[:find (pull ?e [*])
+         :where [?e :evento/origen :origen/cirugia]]
+       db)
 
   (d/q '[:find (pull ?e [:paciente/historia-clinica-unica
                          :evento/nombre

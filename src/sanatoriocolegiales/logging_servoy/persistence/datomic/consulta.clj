@@ -132,7 +132,7 @@
   (tap> (buscar-eventos-por-historia-clinica-unica db 295550))
   (tap> (buscar-eventos-por-patron-de-nombre db "CONV"))
   (tap> (obtener-origenes-eventos db))  
-  (tap> (buscar-excepcion-por-origen db :evento/convenios))
+  (tap> (buscar-excepcion-por-origen db :origen/convenios))
   (tap> (buscar-excepcion-desde db "2024-05-14"))
 
    (obtener-por-id db 17592186045454)

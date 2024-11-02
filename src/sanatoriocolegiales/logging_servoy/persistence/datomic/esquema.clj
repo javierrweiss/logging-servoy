@@ -8,11 +8,11 @@
                   :db/valueType :db.type/string
                   :db/cardinality :db.cardinality/one
                   :db/doc "Nombre del evento"}
-                 {:db/ident :paciente/historia-clinica
+                 {:db/ident :paciente/historia_clinica
                   :db/valueType :db.type/long
                   :db/cardinality :db.cardinality/one
                   :db/doc "Historia clínica internacion"}
-                 {:db/ident :paciente/historia-clinica-unica
+                 {:db/ident :paciente/historia_clinica_unica
                   :db/valueType :db.type/long
                   :db/cardinality :db.cardinality/one
                   :db/doc "Historia clínica única"}
@@ -20,11 +20,11 @@
                   :db/valueType :db.type/ref
                   :db/cardinality :db.cardinality/one
                   :db/doc "Estado de la aplicación"}
-                 {:db/ident :convenios/nro-lote
+                 {:db/ident :convenios/nro_lote
                   :db/valueType :db.type/long
                   :db/cardinality :db.cardinality/one
                   :db/doc "Numero de lote"}
-                 {:db/ident :convenios/contador-registros
+                 {:db/ident :convenios/contador_registros
                   :db/valueType :db.type/long
                   :db/cardinality :db.cardinality/one
                   :db/doc "Contador de registros"}
@@ -47,9 +47,9 @@
                   :db/doc "Momento del evento"}
                  {:db/ident :paciente/internado}
                  {:db/ident :paciente/ambulatorio}
-                 {:db/ident :evento/cirugia}
-                 {:db/ident :evento/uco}
-                 {:db/ident :evento/convenios}
-                 {:db/ident :evento/hcdm}
-                 {:db/ident :evento/uti}])
+                 {:db/ident :origen/cirugia}
+                 {:db/ident :origen/uco}
+                 {:db/ident :origen/convenios}
+                 {:db/ident :origen/hcdm}
+                 {:db/ident :origen/uti}])
 
