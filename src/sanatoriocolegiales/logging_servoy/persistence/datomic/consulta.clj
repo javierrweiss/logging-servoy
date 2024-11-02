@@ -148,6 +148,6 @@
   (tap> (buscar-excepcion-por-origen db :origen/convenios))
   (tap> (buscar-excepcion-desde db "2024-05-14"))
 
-   (obtener-por-id db 17592186045454)
+   (obtener-por-id db 17592186045544)
    
   :rcf) 

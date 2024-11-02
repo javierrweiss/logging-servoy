@@ -136,7 +136,9 @@
   (d/q '[:find (pull ?e [*])
          :where [?e :evento/origen :origen/cirugia]]
        db)
-
+ 
+  (d/pull db '[*] 17592186045544)
+  
   (d/q '[:find (pull ?e [:paciente/historia-clinica-unica
                          :evento/nombre
                          :evento/fecha
