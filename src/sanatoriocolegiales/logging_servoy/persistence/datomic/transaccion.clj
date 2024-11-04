@@ -131,12 +131,13 @@
                   {:db/id    :convenios/contador-registros
                    :db/ident :convenios/contador_registros}])
 
-  (def db (d/db cnn))
+  (def db (d/db cnn)) 
 
   (d/q '[:find (pull ?e [*])
          :where [?e :evento/origen :origen/cirugia]]
        db)
  
+  
   (d/pull db '[*] 17592186045544)
   
   (d/q '[:find (pull ?e [:paciente/historia-clinica-unica
@@ -151,6 +152,14 @@
          [?e :paciente/historia-clinica ?h]]
        db
        3167170)
+  
+  (tap> (d/q '[:find (pull ?e [*
+                               {:evento/estado [:estado/excepcion :estado/ok]} 
+                               {:evento/origen [:db/ident]}
+                               {:paciente/tipo [:db/ident]}]) 
+               :where
+               [?e :evento/nombre _]]
+             db))
 
   (d/q '[:find (pull ?e [:db/id
                          :paciente/historia-clinica-unica

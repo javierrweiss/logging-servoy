@@ -49,5 +49,5 @@
       (consulta/buscar-eventos-por-patron-de-nombre db nombre)))
   (obtener-todos-los-eventos [db]
     (let [db (transaccion/obtener-estado-db! db)]
-      (consulta/obtener-origenes-eventos db))))
+      (consulta/obtener-todo db))))
 

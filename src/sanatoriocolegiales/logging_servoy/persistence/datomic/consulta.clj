@@ -78,14 +78,13 @@
   (cond
     (nil? db) (throw (ex-info "La instancia de la base de datos es nula"
                               {:type :sanatoriocolegiales.logging-servoy.middleware/excepcion-persistencia}))
-    (not fecha) (throw (ex-info "Debe introducir una fecha en formato string"
+    (not fecha) (throw (ex-info "Debe introducir una fecha en formato Instant"
                                 {:type :sanatoriocolegiales.logging-servoy.middleware/argumento-ilegal}))
-    (not (string? fecha)) (throw (ex-info "La fecha debe estar en formato string"
+    (not (inst? fecha)) (throw (ex-info "La fecha debe estar en formato Instant"
                                           {:type :sanatoriocolegiales.logging-servoy.middleware/argumento-ilegal}))
-    :else
-    (let [f (read-instant-date fecha)]
-      (d/q excepcion-desde-fecha db f))))
-
+    :else 
+    (d/q excepcion-desde-fecha db fecha)))
+ 
 (defn buscar-excepcion-por-origen
   [db origen]
   (cond 
@@ -135,6 +134,20 @@
     (let [patron (re-pattern (str "(?ix)" patron))]
       (d/q evento-por-patron-de-nombre db patron))))
 
+(defn obtener-todo
+  [db]
+  (cond
+    (nil? db) (throw (ex-info "La instancia de la base de datos es nula"
+                              {:type :sanatoriocolegiales.logging-servoy.middleware/excepcion-persistencia}))
+    :else
+    (d/q '[:find (pull ?e [*
+                           {:evento/estado [:estado/excepcion :estado/ok]}
+                           {:evento/origen [:db/ident]}
+                           {:paciente/tipo [:db/ident]}])
+           :where
+           [?e :evento/nombre _]]
+         db)))
+
 
 (comment
   (def conn (-> (:donut.system/instances (system-repl/system))
@@ -144,10 +157,9 @@
   (tap> (buscar-eventos-por-historia-clinica db 21100)) 
   (tap> (buscar-eventos-por-historia-clinica-unica db 295550))
   (tap> (buscar-eventos-por-patron-de-nombre db "CONV"))
-  (tap> (obtener-origenes-eventos db))  
-  (tap> (buscar-excepcion-por-origen db :origen/convenios))
-  (tap> (buscar-excepcion-desde db "2024-05-14"))
-
-   (obtener-por-id db 17592186045544)
-   
+  (tap> (obtener-origenes-eventos db))   
+  (tap> (buscar-excepcion-por-origen db :origen/cirugia))
+  (tap> (buscar-excepcion-desde db "2024-05-14")) 
+   (tap> (obtener-por-id db 17592186045432)) 
+    
   :rcf) 

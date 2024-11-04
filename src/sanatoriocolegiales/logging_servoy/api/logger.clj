@@ -1,16 +1,16 @@
 (ns sanatoriocolegiales.logging-servoy.api.logger
-  "Gameboard API Scoreboard across all games"
+  "API Logging para Servoy"
   (:require
-   [ring.util.response :refer [status created]]  
+   [ring.util.response :refer [status created response]]  
    [com.brunobonacci.mulog :as µ] 
    [sanatoriocolegiales.logging-servoy.persistence.persistence-api :as persistence-api]
-   [sanatoriocolegiales.logging-servoy.helpers.api-helpers :as helpers])
+   [sanatoriocolegiales.logging-servoy.helpers.api-helpers :as helpers]
+   [clojure.instant :refer [read-instant-date]])
   (:import java.time.LocalDateTime))
 
 (defn crear-log
-  [conexion {:keys [body-params]}]
-  (let [registro (helpers/peticion->registro body-params)]
-    (tap> registro)
+  [conexion {:keys [body-params]}] 
+  (let [registro (helpers/peticion->registro body-params)] 
     (try
       (persistence-api/insertar conexion [registro])
       (created "")
@@ -55,7 +55,18 @@
         (status 204))))
 
 (defn actualizar-log-parcialmente
-  [conexion {:keys [body-params path-params]}])
+  [conexion {:keys [body-params path-params]}]
+  (let [id (Long/parseLong (:id path-params))
+        registro (helpers/peticion->registro body-params id)]
+    (try
+      (persistence-api/actualizar conexion [registro])
+      (status 204)
+      (catch Exception e (let [msj (ex-message e)]
+                           (µ/log ::error-actualizacion-log :mensaje msj :regitro registro :fecha (LocalDateTime/now))
+                           (throw
+                            (ex-info
+                             (str "Hubo un error al intentar actualizar registro: " msj)
+                             {:type :sanatoriocolegiales.logging-servoy.middleware/excepcion-persistencia})))))))
 
 (defn borrar-log
   [conexion {{:keys [id]} :path-params}]
@@ -70,22 +81,92 @@
   (status 200))
 
 (defn obtener-excepciones-por-fecha
-  [conexion request])
+  [conexion {{:strs [fecha]} :query-params}]
+  (try
+    (let [fec (read-instant-date fecha)]
+      (-> (persistence-api/excepcion-desde conexion fec)
+          response))
+    (catch Exception e (let [msj (ex-message e)]
+                         (µ/log ::error-consulta-log :mensaje msj :fecha (LocalDateTime/now))
+                         (throw
+                          (ex-info
+                           (str "Hubo un error al intentar buscar excepciones por fecha: " msj)
+                           {:type :sanatoriocolegiales.logging-servoy.middleware/excepcion-persistencia}))))))
 
 (defn obtener-excepciones-por-origen
-  [conexion request])
+  [conexion {{:strs [origen]} :query-params}]
+  (let [org (keyword origen)]
+    (try
+      (-> (persistence-api/excepcion-por-origen conexion org)
+          response)
+      (catch Exception e (let [msj (ex-message e)]
+                           (µ/log ::error-consulta-log :mensaje msj :fecha (LocalDateTime/now))
+                           (throw
+                            (ex-info
+                             (str "Hubo un error al intentar buscar excepciones por origen: " msj)
+                             {:type :sanatoriocolegiales.logging-servoy.middleware/excepcion-persistencia})))))))
 
 (defn obtener-eventos-por-hc
-  [conexion request])
+  [conexion {{:strs [hc]} :query-params}]
+  (try
+    (let [hc (Long/parseLong hc)]
+      (-> (persistence-api/eventos-por-historia-clinica conexion hc)
+          response))
+    (catch Exception e (let [msj (ex-message e)]
+                         (µ/log ::error-consulta-log :mensaje msj :fecha (LocalDateTime/now))
+                         (throw
+                          (ex-info
+                           (str "Hubo un error al intentar buscar eventos por hc: " msj)
+                           {:type :sanatoriocolegiales.logging-servoy.middleware/excepcion-persistencia}))))))
 
 (defn obtener-eventos-por-hcu
-  [conexion request])
+  [conexion {{:strs [hcu]} :query-params}]
+  (try
+    (let [hcu (Long/parseLong hcu)]
+      (-> (persistence-api/eventos-por-historia-clinica-unica conexion hcu)
+          response))
+    (catch Exception e (let [msj (ex-message e)]
+                         (µ/log ::error-consulta-log :mensaje msj :fecha (LocalDateTime/now))
+                         (throw
+                          (ex-info
+                           (str "Hubo un error al intentar buscar eventos por hcu: " msj)
+                           {:type :sanatoriocolegiales.logging-servoy.middleware/excepcion-persistencia}))))))
 
 (defn obtener-evento
-  [conexion request])
+  [conexion {{:strs [nombre]} :query-params}]
+  (try
+    (-> (persistence-api/eventos-por-nombre conexion nombre)
+        response)
+    (catch Exception e (let [msj (ex-message e)]
+                         (µ/log ::error-consulta-log :mensaje msj :fecha (LocalDateTime/now))
+                         (throw
+                          (ex-info
+                           (str "Hubo un error al intentar buscar evento por nombre: " msj)
+                           {:type :sanatoriocolegiales.logging-servoy.middleware/excepcion-persistencia}))))))
+
+(defn obtener-evento-id
+  [conexion {{:keys [id]} :path-params}]
+  (try
+    (-> (persistence-api/evento-por-id conexion (Long/parseLong id))
+        response)
+    (catch Exception e (let [msj (ex-message e)]
+                         (µ/log ::error-consulta-log :mensaje msj :fecha (LocalDateTime/now))
+                         (throw
+                          (ex-info
+                           (str "Hubo un error al intentar buscar evento por id: " msj)
+                           {:type :sanatoriocolegiales.logging-servoy.middleware/excepcion-persistencia}))))))
 
 (defn obtener-todos-los-eventos
-  [conexion request])
+  [conexion _]
+  (try
+    (-> (persistence-api/obtener-todos-los-eventos conexion)
+        response)
+    (catch Exception e (let [msj (ex-message e)]
+                         (µ/log ::error-consulta-log :mensaje msj :fecha (LocalDateTime/now))
+                         (throw
+                          (ex-info
+                           (str "Hubo un error al intentar recuperar todos los eventos: " msj)
+                           {:type :sanatoriocolegiales.logging-servoy.middleware/excepcion-persistencia}))))))
 
 (defn routes
   [system-config]
@@ -103,7 +184,7 @@
            :parameters {:path {:id :int}
                         :body helpers/esquema-evento-completo}}
      :patch {:handler (partial actualizar-log-parcialmente system-config)
-             :parameters {:path-params {:id :int}
+             :parameters {:path {:id :int}
                           :body helpers/esquema-evento-opcional}}}]
    
    ["/convenios"
@@ -120,28 +201,38 @@
                         :body helpers/esquema-convenio-completo}
            :handler (partial actualizar-log system-config)}
      :patch {:handler (partial actualizar-log-parcialmente system-config)
-             :parameters {:path-params {:id :int}
+             :parameters {:path {:id :int}
                           :body helpers/esquema-convenio-opcional}}}]
    
    ["/excepciones_desde"
     {:swagger {:tags ["Excepciones por fecha"]}
-     :get {:handler (partial obtener-excepciones-por-fecha system-config)}}]
+     :get {:handler (partial obtener-excepciones-por-fecha system-config)
+           :parameters {:query {:fecha [:re #"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+|\d{4}-\d{2}-\d{2}T\d{2}:\d{2}"]}}}}]
    
    ["/excepciones_origen"
     {:swagger {:tags ["Excepciones por origen"]}
-     :get {:handler (partial obtener-excepciones-por-origen system-config)}}]
+     :get {:handler (partial obtener-excepciones-por-origen system-config)
+           :parameters {:query {:origen helpers/origenes}}}}]
    
    ["/eventos_por_hc"
     {:swagger {:tags ["Eventos por Historia Clínica"]}
-     :get {:handler (partial obtener-eventos-por-hc system-config)}}]
+     :get {:handler (partial obtener-eventos-por-hc system-config)
+           :parameters {:query {:hc :int}}}}]
    
    ["/eventos_por_hcu"
     {:swagger {:tags ["Eventos por Historia Clínica Unica"]}
-     :get {:handler (partial obtener-eventos-por-hcu system-config)}}]
+     :get {:handler (partial obtener-eventos-por-hcu system-config)
+           :parameters {:query {:hcu :int}}}}]
    
    ["/evento"
-    {:swagger {:tags ["Eventos por nombre"]}
-     :get {:handler (partial obtener-evento system-config)}}]
+    {:swagger {:tags ["Eventos por nombre (exacto o aproximado)"]}
+     :get {:handler (partial obtener-evento system-config)
+           :parameters {:query {:nombre :string}}}}]
+   
+   ["/evento/:id"
+    {:swagger {:tags ["Eventos por id"]}
+     :get {:handler (partial obtener-evento-id system-config)
+           :parameters {:path {:id :int}}}}]
    
    ["/todos_eventos"
     {:swagger {:tags ["Todos los eventos"]}
@@ -161,7 +252,8 @@
   (persistence-api/eventos-por-historia-clinica-unica cnn 111110)
 
   (persistence-api/eventos-por-nombre cnn "EVEM")
+  
+  
+  
 
-  
-  
   :rcf)
