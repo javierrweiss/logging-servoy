@@ -21,8 +21,7 @@
      :app-env "prod"
      :http-port (or (System/getenv "SERVICE_HTTP_PORT") 3000)
      :persistence
-     {:datomic-conn-string (System/getenv "DATOMIC")}}
-    ;; mulog publisher for a given publisher type, i.e. console, cloud-watch
+     {:datomic-conn-string (System/getenv "DATOMIC")}} 
     :db 
     {:datomic 
      #::donut{:start (fn conexion-datomic
@@ -93,6 +92,23 @@
                                 [{{:keys [db-obj]} ::donut/config}] 
                                 (router/app db-obj))
                        :config {:db-obj (donut/ref [:db :datomic])}}}}})
+
+(defmethod donut/named-system :main
+  []
+  main)
+
+(defmethod donut/named-system :test
+  []
+  (donut/system :main {[:env :app-env] "test"
+                       [:env :http-port] 2500
+                       [:env :persistence :datomic-conn-string] "datomic:mem://logging"
+                       [:db :datomic ::donut/start] (fn conexion-datomic-test
+                                                      [{{:keys [conn-str]} ::donut/config}]
+                                                      (try
+                                                        (µ/log ::estableciendo-conexion-datomic-test)
+                                                        (when (d/create-database conn-str)
+                                                          (d/connect conn-str))
+                                                        (catch IOException e (µ/log ::error-conexion-datomic :mensaje (ex-message e)))))}))
 
 (comment
   
