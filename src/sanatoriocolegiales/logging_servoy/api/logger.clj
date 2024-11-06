@@ -24,13 +24,11 @@
   (defn actualizar-log
     "Actualiza log asegurando idempotencia de la operación"
     [conexion {:keys [path-params body-params]}]
-    (let [id (Long/parseLong (:id path-params))
-          when-coll-first (fn [x] (if (coll? x) (first x) x))
-          actualizacion (-> body-params
-                            helpers/peticion->registro
-                            (assoc :db/id id)
-                            (update :evento/origen (fn [val] (assoc {} :db/ident val)))
-                            (update :paciente/tipo (fn [val] (assoc {} :db/ident val))))
+    (let [id (Long/parseLong (:id path-params)) 
+          actualizacion (as-> body-params bp
+                            (helpers/peticion->registro bp id) 
+                            (update bp :evento/origen (fn [val] (assoc {} :db/ident val)))
+                            (update bp :paciente/tipo (fn [val] (assoc {} :db/ident val))))
           existente (-> (try
                           (persistence-api/evento-por-id conexion id)
                           (catch Exception e (let [msj (ex-message e)]
@@ -40,8 +38,7 @@
                                                  (str "Hubo un error al buscar registro por id: " msj)
                                                  {:type :sanatoriocolegiales.logging-servoy.middleware/excepcion-persistencia
                                                   :mensaje msj})))))
-                        when-coll-first
-                        when-coll-first)]
+                        flatten)]
       (if-not (= actualizacion existente)
         (do (try
               (persistence-api/actualizar conexion [actualizacion])
