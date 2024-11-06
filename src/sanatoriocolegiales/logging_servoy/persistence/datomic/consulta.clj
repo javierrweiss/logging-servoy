@@ -1,6 +1,5 @@
 (ns sanatoriocolegiales.logging-servoy.persistence.datomic.consulta
-  (:require [datomic.api :as d]
-            [clojure.instant :refer [read-instant-date]]))
+  (:require [datomic.api :as d]))
 
 (def excepcion-desde-fecha '[:find (pull ?e [* {:evento/origen [:db/ident]} {:paciente/tipo [:db/ident]}])
                              :in $ ?fecha
@@ -10,7 +9,7 @@
                              [?e :evento/estado ?est]
                              [?est :estado/excepcion _]])
 
-(def excepcion-por-origen '[:find (pull ?e [:db/id
+(def excepcion-por-origen '[:find (pull ?e [:evento/id
                                             :paciente/historia-clinica-unica
                                             :paciente/historia-clinica
                                             :evento/nombre
@@ -28,7 +27,7 @@
                            :where [_ :evento/origen ?e]
                            [?e :db/ident ?nombre]])
 
-(def evento-por-hc '[:find (pull ?e [:db/id
+(def evento-por-hc '[:find (pull ?e [:evento/id
                                      :paciente/historia-clinica-unica
                                      :evento/nombre
                                      :evento/fecha
@@ -40,7 +39,7 @@
                      :where
                      [?e :paciente/historia-clinica ?h]])
 
-(def evento-por-hcu '[:find (pull ?e [:db/id
+(def evento-por-hcu '[:find (pull ?e [:evento/id
                                       :paciente/historia-clinica
                                       :evento/nombre
                                       :evento/fecha
@@ -64,12 +63,12 @@
   (when-not db 
     (throw (ex-info "La instancia de la base de datos es nula"
                     {:type :sanatoriocolegiales.logging-servoy.middleware/excepcion-persistencia})))
-  (d/q '[:find (pull ?id [* 
+  (d/q '[:find (pull ?e [* 
                           {:evento/origen [:db/ident]}
                           {:evento/estado [:db/ident :estado/excepcion :estado/ok]}
                           {:paciente/tipo [:db/ident]}])
          :in $ ?id
-         :where [?id :evento/nombre _]]
+         :where [?e :evento/id ?id]]
        db
        id))
  
