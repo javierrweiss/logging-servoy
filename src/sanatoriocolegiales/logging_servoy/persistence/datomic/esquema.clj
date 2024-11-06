@@ -1,6 +1,9 @@
 (ns sanatoriocolegiales.logging-servoy.persistence.datomic.esquema)
 
-(def log-schema [{:db/ident :evento/origen
+(def log-schema [{:db/ident :evento/id
+                  :db/valueType :db.type/uuid
+                  :db/unique :db.unique/identity}
+                 {:db/ident :evento/origen
                   :db/valueType :db.type/ref
                   :db/cardinality :db.cardinality/one
                   :db/doc "Fuente del evento"}
