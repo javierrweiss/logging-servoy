@@ -6,7 +6,7 @@
  ;; ---------------------------------------------------------
  :deps
  {;; Service
-  http-kit/http-kit  {:mvn/version "2.8.0"}  ; latest "2.7.0-alpha1"
+  http-kit/http-kit  {:mvn/version "2.8.0"}  
   metosin/reitit     {:mvn/version "0.7.0"}
   metosin/reitit-dev {:mvn/version "0.7.0"} ; human readable exceptions
 
