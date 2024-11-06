@@ -121,6 +121,7 @@
                    :evento/fecha #inst "2024-11-01T12:10:00.000-00:00"}])
   
   (ejecutar! cnn [{:db/excise 17592186045429}])
+  (ejecutar! cnn [{:db/excise 123}])
 
   (ejecutar! cnn [{:db/id    :paciente/historia-clinica
                    :db/ident :paciente/historia_clinica}
@@ -130,7 +131,13 @@
                    :db/ident :convenios/nro_lote}
                   {:db/id    :convenios/contador-registros
                    :db/ident :convenios/contador_registros}])
-
+  
+  (ejecutar! cnn [{:db/ident :evento/id
+                   :db/cardinality :db.cardinality/one
+                   :db/valueType :db.type/uuid
+                   :db/unique :db.unique/identity
+                   :db/doc "Identificador unico del evento"}])
+  
   (def db (d/db cnn)) 
 
   (d/q '[:find (pull ?e [*])
@@ -311,6 +318,10 @@
        db)
 
   (def history (d/history db))
+
+  (d/pull (d/as-of db #inst "2024-11-01") '[*] [:evento/origen :origen/cirugia])
+  (d/entid (d/as-of db #inst "2024-11-01") [:db/ident :evento/nombre])
+  (d/entid db [:db/ident :evento/id])
 
   (count (d/q '[:find ?hc ?hcu ?nombre ?estado ?fecha ?origen
                 :in $ ?id
