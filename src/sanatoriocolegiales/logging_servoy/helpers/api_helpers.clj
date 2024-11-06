@@ -2,6 +2,7 @@
   (:require
    [sanatoriocolegiales.logging-servoy.persistence.datomic.esquema :refer [log-schema]]
    [hyperfiddle.rcf :refer [tests]]
+   [datomic.api :as d]
    [malli.core :as m]
    [malli.error :as me]
    [malli.experimental.time :as met]
@@ -20,8 +21,8 @@
    (peticion->registro peticion nil))
   ([peticion id]
    (try
-     (cond-> peticion
-       id (assoc :db/id id)
+     (cond-> (assoc peticion :evento/id (d/squuid))
+       id (update :evento/id (constantly id))
        (get peticion :evento/fecha) (update :evento/fecha read-instant-date)
        (get peticion :evento/origen) (update :evento/origen keyword)
        (get peticion :paciente/tipo) (update :paciente/tipo (fn [value] (keyword "paciente" value))))
@@ -256,14 +257,16 @@
                     :paciente/tipo "ambulatorio"
                     :evento/estado {:estado/excepcion ["wes" "ssdsd"]}})
 
- (peticion->registro body-params) := {:evento/nombre "EVENTO X"
+ (peticion->registro body-params) := {:evento/id _
+                                      :evento/nombre "EVENTO X"
                                       :evento/origen :origen/uco
                                       :evento/fecha (read-instant-date "2024-02-20T12:33")
                                       :paciente/historia_clinica 3212
                                       :evento/estado {:estado/ok ["wes" "ssdsd"]}
                                       :paciente/tipo :paciente/internado}
 
- (peticion->registro body-params2) := {:evento/nombre "EVENTO X"
+ (peticion->registro body-params2) := {:evento/id _
+                                       :evento/nombre "EVENTO X"
                                        :evento/origen :origen/uti
                                        :evento/fecha (read-instant-date "2024-02-22T13:56")
                                        :paciente/historia_clinica 32121
@@ -273,7 +276,7 @@
  
  (peticion->registro body-params3) :throws clojure.lang.ExceptionInfo
 
- (peticion->registro body-params 1234) := {:db/id 1234
+ (peticion->registro body-params 1234) := {:evento/id 1234
                                            :evento/nombre "EVENTO X"
                                            :evento/origen :origen/uco
                                            :evento/fecha (read-instant-date "2024-02-20T12:33")
