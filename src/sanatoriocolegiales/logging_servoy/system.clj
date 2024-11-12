@@ -10,7 +10,8 @@
    [org.httpkit.server     :as http-server]
    [com.brunobonacci.mulog :as µ]
    [datomic.api :as d])
-  (:import java.io.IOException))
+  (:import java.io.IOException
+           java.time.Instant))
 
 (def main
   "System Component management with Donut"
@@ -96,22 +97,10 @@
 (defmethod donut/named-system :main
   []
   main)
-
-(defmethod donut/named-system :test
-  []
-  (donut/system :main {[:env :app-env] "test"
-                       [:env :http-port] 2500
-                       [:env :persistence :datomic-conn-string] "datomic:mem://logging"
-                       [:db :datomic ::donut/start] (fn conexion-datomic-test
-                                                      [{{:keys [conn-str]} ::donut/config}]
-                                                      (try
-                                                        (µ/log ::estableciendo-conexion-datomic-test)
-                                                        (when (d/create-database conn-str)
-                                                          (d/connect conn-str))
-                                                        (catch IOException e (µ/log ::error-conexion-datomic :mensaje (ex-message e)))))}))
-
-(comment
   
+(comment
+   (d/squuid)
   (d/create-database "datomic:sql://bases_auxiliares?jdbc:postgresql://10.200.0.190:5432/bases_auxiliares?user=auxiliar&password=auxi2013")
   
+  (let [{{{:keys [db]} :instances} ::donut/system}  donut/system])
   )

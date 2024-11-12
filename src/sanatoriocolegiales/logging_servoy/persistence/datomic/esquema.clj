@@ -23,6 +23,7 @@
                   :db/doc "Historia clínica única"}
                  {:db/ident :evento/estado
                   :db/valueType :db.type/ref
+                  :db/isComponent true
                   :db/cardinality :db.cardinality/one
                   :db/doc "Estado de la aplicación"}
                  {:db/ident :convenios/nro_lote
@@ -37,8 +38,7 @@
                   :db/valueType :db.type/string
                   :db/cardinality :db.cardinality/many
                   :db/doc "Excepción"}
-                 {:db/ident :estado/ok
-                  :db/isComponent true
+                 {:db/ident :estado/ok 
                   :db/valueType :db.type/string
                   :db/cardinality :db.cardinality/many
                   :db/doc "Registros que indican el estado actual de la aplicación"}

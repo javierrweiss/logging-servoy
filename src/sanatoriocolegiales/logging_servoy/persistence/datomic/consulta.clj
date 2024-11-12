@@ -10,8 +10,8 @@
                              [?est :estado/excepcion _]])
 
 (def excepcion-por-origen '[:find (pull ?e [:evento/id
-                                            :paciente/historia-clinica-unica
-                                            :paciente/historia-clinica
+                                            :paciente/historia_clinica_unica
+                                            :paciente/historia_clinica
                                             :evento/nombre
                                             :evento/fecha
                                             {:evento/estado [:estado/excepcion :estado/ok]}
@@ -28,7 +28,7 @@
                            [?e :db/ident ?nombre]])
 
 (def evento-por-hc '[:find (pull ?e [:evento/id
-                                     :paciente/historia-clinica-unica
+                                     :paciente/historia_clinica_unica
                                      :evento/nombre
                                      :evento/fecha
                                      {:evento/estado [:estado/excepcion :estado/ok]}
@@ -37,10 +37,10 @@
                                      {:paciente/tipo [:db/ident]}])
                      :in $ ?h
                      :where
-                     [?e :paciente/historia-clinica ?h]])
+                     [?e :paciente/historia_clinica ?h]])
 
 (def evento-por-hcu '[:find (pull ?e [:evento/id
-                                      :paciente/historia-clinica
+                                      :paciente/historia_clinica
                                       :evento/nombre
                                       :evento/fecha
                                       {:evento/estado [:estado/excepcion :estado/ok]}
@@ -49,7 +49,7 @@
                                       {:paciente/tipo [:db/ident]}])
                       :in $ ?h
                       :where
-                      [?e :paciente/historia-clinica-unica ?h]])
+                      [?e :paciente/historia_clinica_unica ?h]])
 
 (def evento-por-patron-de-nombre '[:find (pull ?e [* {:evento/origen [:db/ident]}
                                                    {:paciente/tipo [:db/ident]}])

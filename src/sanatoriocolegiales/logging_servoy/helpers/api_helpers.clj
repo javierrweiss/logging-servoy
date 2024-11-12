@@ -8,7 +8,8 @@
    [malli.experimental.time :as met]
    [malli.registry :as mr]
    [clojure.instant :refer [read-instant-date]]
-   [com.brunobonacci.mulog :as µ])
+   [com.brunobonacci.mulog :as µ]
+   [malli.generator :as mg])
   (:import java.time.LocalDateTime))
 
 (mr/set-default-registry!
@@ -300,4 +301,29 @@
       id (assoc :db/id id)
       (get body-params :evento/fecha) (update :evento/fecha read-instant-date)
       (get body-params :evento/origen) (update :evento/origen keyword)
-      (get body-params :paciente/tipo) (update :paciente/tipo (fn [value] (keyword "paciente" value))))))
+      (get body-params :paciente/tipo) (update :paciente/tipo (fn [value] (keyword "paciente" value)))))
+
+  (require '[malli.generator :as mg])
+
+  (mg/generate esquema-evento-completo)
+
+  (m/validate esquema-evento-completo {:evento/nombre "Pme568444xSILyGdDu",
+                                       :evento/origen :origen/hcdm,
+                                       :evento/fecha "2659-04-42T42:28",
+                                       :evento/estado
+                                       #:estado{:ok
+                                                ["A6"
+                                                 "8H3M7cRB9BrDEikf"
+                                                 "asOPWc5tI12nZh6n66N07V9W5g8e"
+                                                 "sPvxj9PD"
+                                                 "tOdx5D75ZrH45tOvK9ZscrC1U2Q5j"
+                                                 "3GxXHYHUt6Hfld7"
+                                                 "vQ6R7MUpxT5XECq7GtJ9Wsk"
+                                                 "53EiHQAGahxemT6Z"
+                                                 "79"
+                                                 "T"]},
+                                       :paciente/tipo "internado",
+                                       :paciente/historia_clinica -1422243})
+  
+  (m/validate [:time/local-date-time] (LocalDateTime/now))
+  :rcf)

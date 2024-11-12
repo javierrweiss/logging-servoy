@@ -18,7 +18,7 @@
   (obtener-todos-los-eventos [db] "Obtiene los eventos registrados en la base"))
 
 (extend-protocol Persistencia
-  datomic.peer.Connection
+  (or datomic.peer.LocalConnection datomic.peer.Connection)
   (insertar [db datos]
     (transaccion/ejecutar! db datos))
   (actualizar [db datos]
