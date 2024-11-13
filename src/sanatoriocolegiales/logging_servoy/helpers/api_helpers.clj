@@ -295,6 +295,8 @@
 
   (m/validate [:map [:evento/origen origenes]] {:evento/origen :origen/uco})
 
+  (m/validate [:map [:a :uuid]] {:a (java.util.UUID/randomUUID)})
+ 
   (let [body-params {:evento/origen "origen/uco"}
         id nil #_123]
     (cond-> body-params

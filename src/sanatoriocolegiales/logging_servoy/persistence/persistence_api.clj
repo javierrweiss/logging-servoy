@@ -18,7 +18,39 @@
   (obtener-todos-los-eventos [db] "Obtiene los eventos registrados en la base"))
 
 (extend-protocol Persistencia
-  (or datomic.peer.LocalConnection datomic.peer.Connection)
+  datomic.peer.Connection
+  (insertar [db datos]
+    (transaccion/ejecutar! db datos))
+  (actualizar [db datos]
+    (transaccion/ejecutar! db datos))
+  (eliminar [db datos]
+    (transaccion/ejecutar! db datos))
+  (agregar-columna-o-atributo [campo tipo-dato cardinalidad doc unico?]
+    (transaccion/agregar-nuevo-atributo campo tipo-dato cardinalidad doc unico?))
+  (actualizar-columna-o-atributo [campo-anterior campo-nuevo]
+    (transaccion/actualizar-atributo-esquema campo-anterior campo-nuevo))
+  (excepcion-desde [db fecha]
+    (let [db (transaccion/obtener-estado-db! db)]
+      (consulta/buscar-excepcion-desde db fecha)))
+  (excepcion-por-origen [db origen]
+    (let [db (transaccion/obtener-estado-db! db)]
+      (consulta/buscar-excepcion-por-origen db origen)))
+  (eventos-por-historia-clinica [db hc]
+    (let [db (transaccion/obtener-estado-db! db)]
+      (consulta/buscar-eventos-por-historia-clinica db hc)))
+  (eventos-por-historia-clinica-unica [db hcu]
+    (let [db (transaccion/obtener-estado-db! db)]
+      (consulta/buscar-eventos-por-historia-clinica-unica db hcu)))
+  (evento-por-id [db id]
+    (let [db (transaccion/obtener-estado-db! db)]
+      (consulta/obtener-por-id db id)))
+  (eventos-por-nombre [db nombre]
+    (let [db (transaccion/obtener-estado-db! db)]
+      (consulta/buscar-eventos-por-patron-de-nombre db nombre)))
+  (obtener-todos-los-eventos [db]
+    (let [db (transaccion/obtener-estado-db! db)]
+      (consulta/obtener-todo db)))
+  datomic.peer.LocalConnection
   (insertar [db datos]
     (transaccion/ejecutar! db datos))
   (actualizar [db datos]
@@ -51,3 +83,7 @@
     (let [db (transaccion/obtener-estado-db! db)]
       (consulta/obtener-todo db))))
 
+(comment 
+  (ns-interns *ns*)
+  (ns-unmap *ns* 'Persistencia)
+  )

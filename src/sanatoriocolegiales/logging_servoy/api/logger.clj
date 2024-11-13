@@ -24,11 +24,11 @@
   (defn actualizar-log
     "Actualiza log asegurando idempotencia de la operación"
     [conexion {:keys [path-params body-params]}]
-    (let [id (Long/parseLong (:id path-params)) 
+    (let [id (parse-uuid (:id path-params)) 
           actualizacion (as-> body-params bp
-                            (helpers/peticion->registro bp id) 
-                            (update bp :evento/origen (fn [val] (assoc {} :db/ident val)))
-                            (update bp :paciente/tipo (fn [val] (assoc {} :db/ident val))))
+                          (helpers/peticion->registro bp id) 
+                          (update bp :evento/origen (fn [val] (assoc {} :db/ident val)))
+                          (update bp :paciente/tipo (fn [val] (assoc {} :db/ident val))))
           existente (-> (try
                           (persistence-api/evento-por-id conexion id)
                           (catch Exception e (let [msj (ex-message e)]
@@ -53,7 +53,7 @@
 
 (defn actualizar-log-parcialmente
   [conexion {:keys [body-params path-params]}]
-  (let [id (Long/parseLong (:id path-params))
+  (let [id (parse-uuid (:id path-params))
         registro (helpers/peticion->registro body-params id)]
     (try
       (persistence-api/actualizar conexion [registro])
@@ -68,7 +68,7 @@
 (defn borrar-log
   [conexion {{:keys [id]} :path-params}]
   (try
-    (persistence-api/eliminar conexion [{:db/excise (Long/parseLong id)}])
+    (persistence-api/eliminar conexion [{:db/excise (parse-uuid id)}])
     (catch Exception e (let [msj (ex-message e)]
                          (µ/log ::error-eliminacion-log :mensaje msj :id id :fecha (LocalDateTime/now))
                          (throw
@@ -144,7 +144,7 @@
 (defn obtener-evento-id
   [conexion {{:keys [id]} :path-params}]
   (try
-    (-> (persistence-api/evento-por-id conexion (Long/parseLong id))
+    (-> (persistence-api/evento-por-id conexion (parse-uuid id))
         response)
     (catch Exception e (let [msj (ex-message e)]
                          (µ/log ::error-consulta-log :mensaje msj :fecha (LocalDateTime/now))
@@ -176,12 +176,12 @@
    ["/cirugia/:id"
     {:swagger {:tags ["Actualizar o borrar logs de cirugía"]}
      :delete {:handler (partial borrar-log system-config)
-              :parameters {:path {:id :int}}}
+              :parameters {:path {:id :uuid}}}
      :put {:handler (partial actualizar-log system-config)
-           :parameters {:path {:id :int}
+           :parameters {:path {:id :uuid}
                         :body helpers/esquema-evento-completo}}
      :patch {:handler (partial actualizar-log-parcialmente system-config)
-             :parameters {:path {:id :int}
+             :parameters {:path {:id :uuid}
                           :body helpers/esquema-evento-opcional}}}]
    
    ["/convenios"
@@ -192,13 +192,13 @@
    
    ["/convenios/:id"
     {:swagger {:tags ["Actualización y eliminación de logs para Convenios profesionales"]}
-     :delete {:parameters {:path {:id :int}}
+     :delete {:parameters {:path {:id :uuid}}
               :handler (partial borrar-log system-config)}
-     :put {:parameters {:path {:id :int}
+     :put {:parameters {:path {:id :uuid}
                         :body helpers/esquema-convenio-completo}
            :handler (partial actualizar-log system-config)}
      :patch {:handler (partial actualizar-log-parcialmente system-config)
-             :parameters {:path {:id :int}
+             :parameters {:path {:id :uuid}
                           :body helpers/esquema-convenio-opcional}}}]
    
    ["/excepciones_desde"
@@ -229,7 +229,7 @@
    ["/evento/:id"
     {:swagger {:tags ["Eventos por id"]}
      :get {:handler (partial obtener-evento-id system-config)
-           :parameters {:path {:id :int}}}}]
+           :parameters {:path {:id :uuid}}}}]
    
    ["/todos_eventos"
     {:swagger {:tags ["Todos los eventos"]}
@@ -243,7 +243,7 @@
                :db
                :datomic)) 
   
-
+ 
   (persistence-api/eventos-por-historia-clinica cnn 778889)
 
   (persistence-api/eventos-por-historia-clinica-unica cnn 111110)

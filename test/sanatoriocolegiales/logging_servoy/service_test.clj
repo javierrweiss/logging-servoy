@@ -8,8 +8,7 @@
             [sanatoriocolegiales.logging-servoy.system :refer [main]]
             [com.brunobonacci.mulog :as µ]
             [clojure.instant :refer [read-instant-date]])
-  (:import java.time.Instant
-           java.io.IOException))
+  (:import java.io.IOException))
 
 (def transaccion-test [{:evento/id #uuid "67324c94-4e3a-4526-a10c-1c8a418bc280"
                         :evento/nombre "Evento de prueba por defecto"
@@ -88,7 +87,8 @@
                                                               :paciente/tipo "internado"
                                                               :paciente/historia_clinica 101023
                                                               :paciente/historia_clinica_unica 155446})})
-                          :status)]))
+                          :status)]
+        (is (== 201 respuesta))))
 
     (testing "Cuando recibe una solicitud con el método POST al endpoint /cirugia devuelve 400 cuando el body no tiene la forma correcta"
       (let [respuesta (-> @(client/post (str url "/cirugia")
@@ -100,7 +100,8 @@
                                                               :paciente/tipo "internado"
                                                               :paciente/historia_clinica 101023
                                                               :paciente/historia_clinica_unica 155446})})
-                          :status)]))
+                          :status)]
+        (is (== 400 respuesta))))
 
     (testing "Cuando recibe una solicitud con el método PUT al endpoint /cirugia devuelve 400 cuando la petición es inválida"
       (let [respuesta (-> @(client/put (str url "/cirugia")) 
@@ -111,7 +112,8 @@
                                                 :paciente/tipo "internado"
                                                 :paciente/historia_clinica 101023
                                                 :paciente/historia_clinica_unica 155446})}
-                          :status)]))
+                          :status)]
+        (is (== 400 respuesta))))
 
     (testing "Cuando recibe una solicitud con el método PUT al endpoint /cirugia devuelve 201 cuando el recurso fue actualizado"
       (let [solicitud (fn [] @(client/put (str url "/cirugia") 
@@ -130,17 +132,21 @@
 
     (testing "Cuando recibe una solicitud con el método PATCH al endpoint /cirugia devuelve 204 cuando el recurso fue actualizado"
       (let [respuesta (-> @(client/patch (str url "/cirugia") {:body (json/encode {:paciente/historia_clinica 121212})
-                                                               :path-params {:id #uuid "67324c94-4e3a-4526-a10c-1c8a418bc280"}}) :status)]))
+                                                               :path-params {:id #uuid "67324c94-4e3a-4526-a10c-1c8a418bc280"}}) :status)]
+        (is (== 204 respuesta))))
 
     (testing "Cuando recibe una solicitud con el método PATCH al endpoint /cirugia devuelve 400 cuando la petición es inválida"
       (let [respuesta (-> @(client/patch (str url "/cirugia") {:body (json/encode {:paciente/no-existente 111222})
-                                                               :path-params {:id #uuid "67324c94-4e3a-4526-a10c-1c8a418bc280"}}) :status)]))
+                                                               :path-params {:id #uuid "67324c94-4e3a-4526-a10c-1c8a418bc280"}}) :status)]
+        (is (== 400 respuesta))))
 
     (testing "Cuando recibe una solicitud con el método DELETE al endpoint /cirugia devuelve 200 cuando fue exitoso"
-      (let [respuesta (-> @(client/delete (str url "/cirugia") {:path-params {:id #uuid "67325217-4fe1-447b-bfa1-f007d9dce44b"}}) :status)]))
+      (let [respuesta (-> @(client/delete (str url "/cirugia") {:path-params {:id #uuid "67325217-4fe1-447b-bfa1-f007d9dce44b"}}) :status)]
+        (is (== 200 respuesta))))
 
     (testing "Cuando recibe una solicitud con el método DELETE al endpoint /cirugia devuelve 404 cuando el recurso no existe"
-      (let [respuesta (-> @(client/delete (str url "/cirugia" {:path-params {:id #uuid "261d40ef-108d-4dde-99f2-f48f37ccea73"}})) :status)])))
+      (let [respuesta (-> @(client/delete (str url "/cirugia" {:path-params {:id #uuid "261d40ef-108d-4dde-99f2-f48f37ccea73"}})) :status)]
+        (is (== 404 respuesta)))))
 
   (testing "CONVENIOS"
 
@@ -153,7 +159,8 @@
                                                              :evento/estado {:estado/excepcion ["Crap!" "Oh nooo!!"]}
                                                              :convenios/contador_registros 120
                                                              :convenios/nro_lote 421})}) 
-                          :status)]))
+                          :status)]
+        (is (== 201 respuesta))))
 
     (testing "Cuando recibe una solicitud con el método POST al endpoint /convenios devuelve 400 cuando el body no tiene la forma correcta"
       (let [respuesta (-> @(client/post (str url "/convenios")
@@ -164,13 +171,16 @@
                                                              :evento/estado {:estado/excepcion ["Crap!" "Oh nooo!!"]}
                                                              :convenios/contador_registros 120
                                                              :convenios/nro_lote 421})}) 
-                          :status)]))
+                          :status)]
+        (is (== 400 respuesta))))
 
     (testing "Cuando recibe una solicitud con el método DELETE al endpoint /convenios devuelve 200 cuando el recurso fue borrado"
-      (let [respuesta (-> @(client/delete (str url "/convenios") {:path-params {:id #uuid "67325344-ee80-4bde-aa58-dc2a49188772"}}) :status)]))
+      (let [respuesta (-> @(client/delete (str url "/convenios") {:path-params {:id #uuid "67325344-ee80-4bde-aa58-dc2a49188772"}}) :status)]
+        (is (== 200 respuesta))))
 
     (testing "Cuando recibe una solicitud con el método DELETE al endpoint /convenios devuelve 404 cuando el recurso no se encontró"
-      (let [respuesta (-> @(client/delete (str url "/convenios" {:path-params {:id #uuid "261d40ef-108d-4dde-99f2-f48f37ccea73"}})) :status)]))
+      (let [respuesta (-> @(client/delete (str url "/convenios" {:path-params {:id #uuid "261d40ef-108d-4dde-99f2-f48f37ccea73"}})) :status)]
+        (is (== 404 respuesta))))
 
     (testing "Cuando recibe una solicitud con el método PUT al endpoint /convenios devuelve 201 cuando el recurso fue actualizado"
       (let [solicitud (fn [] @(client/put (str url "/convenios") {:body  (json/encode {:evento/nombre "CONVENIO X"
@@ -180,54 +190,66 @@
                                                                                        :convenios/contador_registros 1220
                                                                                        :convenios/nro_lote 4221})
                                                                   :path-params {:id #uuid "67325217-4fe1-447b-bfa1-f007d9dce44b"}}))]
+        (is (== 201 (:status (solicitud))))
         (testing "Cuando recibe una solicitud con el método PUT al endpoint /convenios devuelve 204 cuando ya se recibió la misma petición de actualización"
-          )))
+          (is (== 204 (:status (solicitud)))))))
     
     (testing "Cuando recibe una solicitud con el método PATCH al endpoint /convenios devuelve 204 cuando el recurso fue actualizado"
       (let [respuesta (-> @(client/patch (str url "/convenios") 
                                          {:body (json/encode {:convenios/contador_registros 1220})
                                           :path-params {:id #uuid "67325217-4fe1-447b-bfa1-f007d9dce44b"}}) 
-                          :status)])))
+                          :status)]
+        (is (== 204 respuesta)))))
 
   (testing "EXCEPCIONES DESDE CIERTA FECHA"
 
     (testing "Cuando recibe una solicitud correcta con el método GET al endpoint /excepciones_desde devuelve 200"
-      (let [respuesta (-> @(client/get (str url "/excepciones_desde") {:query-params {"fecha" "2024-01-01T00:00"}}) :status)]))
+      (let [respuesta (-> @(client/get (str url "/excepciones_desde") {:query-params {"fecha" "2024-01-01T00:00"}}) :status)]
+        (is (== 200 respuesta))))
 
     (testing "Cuando recibe una solicitud incorrecta con el método GET al endpoint /excepciones_desde devuelve 400"
-      (let [respuesta (-> @(client/get (str url "/excepciones_desde") {:query-params {"fecha" "2024-01-01"}}) :status)])))
+      (let [respuesta (-> @(client/get (str url "/excepciones_desde") {:query-params {"fecha" "2024-01-01"}}) :status)]
+        (is (== 400 respuesta)))))
 
   (testing "EXCEPCIONES POR ORIGEN"
 
     (testing "Cuando recibe una solicitud correcta con el método GET al endpoint /excepciones_origen devuelve 200"
-      (let [respuesta (-> @(client/get (str url "/excepciones_origen") {:query-params {"origen" "origen/uco"}}) :status)]))
+      (let [respuesta (-> @(client/get (str url "/excepciones_origen") {:query-params {"origen" "origen/uco"}}) :status)]
+        (is (== 200 respuesta))))
 
     (testing "Cuando recibe una solicitud incorrecta con el método GET al endpoint /excepciones_origen devuelve 400"
-      (let [respuesta (-> @(client/get (str url "/excepciones_origen") {:query-params {"origen" "origen/ninguno"}}) :status)])))
+      (let [respuesta (-> @(client/get (str url "/excepciones_origen") {:query-params {"origen" "origen/ninguno"}}) :status)]
+        (is (== 400 respuesta)))))
 
   (testing "EVENTOS POR HISTORIA CLINICA"
 
     (testing "Cuando recibe una solicitud correcta con el método GET al endpoint /eventos_por_hc devuelve 200"
-      (let [respuesta (-> @(client/get (str url "/eventos_por_hc") {:query-params {"hc" "133232"}}) :status)]))
+      (let [respuesta (-> @(client/get (str url "/eventos_por_hc") {:query-params {"hc" "133232"}}) :status)]
+        (is (== 200 respuesta))))
 
     (testing "Cuando recibe una solicitud incorrecta con el método GET al endpoint /eventos_por_hc devuelve 400"
-      (let [respuesta (-> @(client/get (str url "/eventos_por_hc") {:query-params {"hc" "acd"}}) :status)])))
+      (let [respuesta (-> @(client/get (str url "/eventos_por_hc") {:query-params {"hc" "acd"}}) :status)]
+        (is (== 400 respuesta)))))
 
   (testing "EVENTOS POR HISTORIA CLINICA UNICA"
 
     (testing "Cuando recibe una solicitud correcta con el método GET al endpoint /eventos_por_hcu devuelve 200"
-      (let [respuesta (-> @(client/get (str url "/eventos_por_hcu") {:query-params {"hcu" "7754455"}}) :status)]))
+      (let [respuesta (-> @(client/get (str url "/eventos_por_hcu") {:query-params {"hcu" "7754455"}}) :status)]
+        (is (== 200 respuesta))))
 
     (testing "Cuando recibe una solicitud incorrecta con el método GET al endpoint /eventos_por_hcu devuelve 400"
-      (let [respuesta (-> @(client/get (str url "/eventos_por_hcu") {:query-params {"hcu" "2ed23"}}) :status)])))
+      (let [respuesta (-> @(client/get (str url "/eventos_por_hcu") {:query-params {"hcu" "2ed23"}}) :status)]
+        (is (== 400 respuesta)))))
 
   (testing "EVENTO"
 
     (testing "Cuando recibe una solicitud correcta con el método GET al endpoint /evento devuelve 200"
-      (let [respuesta (-> @(client/get (str url "/evento") {:query-params {"nombre" "CONVENIO"}}) :status)]))
+      (let [respuesta (-> @(client/get (str url "/evento") {:query-params {"nombre" "CONVENIO"}}) :status)]
+        (is (== 200 respuesta))))
 
     (testing "Cuando recibe una solicitud incorrecta con el método GET al endpoint /evento devuelve 400"
-      (let [respuesta (-> @(client/get (str url "/evento") {:query-params {"nombre" "4555"}}) :status)])))
+      (let [respuesta (-> @(client/get (str url "/evento") {:query-params {"nombre" "4555"}}) :status)]
+        (is (== 400 respuesta)))))
 
   (testing "TODOS LOS EVENTOS"
 
@@ -237,13 +259,13 @@
 
 
 (comment
-  
+
   (run-test service-test)
-  
+
   (clojure.test/run-all-tests)
   (def prod-url "http://localhost:3000/api/v1")
   @(client/get (str prod-url "/todos_eventos"))
-  
+
   (-> @(client/post (str prod-url "/cirugia")  {:headers {"Content-Type" "application/json"}
                                                 :body  (json/encode {:evento/nombre "EVENTO DE PRUEBA 1"
                                                                      :evento/origen "origen/uti"
@@ -255,12 +277,32 @@
       :body
       json/decode)
   
-  (let [st (donut/start (donut/system :test))]
-    (donut/stop st))
-  
-  (tap> (donut/system :test)) 
-  (donut/stop (donut/system :test))
-   
+  (ns-unmap *ns* 'conn)
+
+  (d/delete-database "datomic:mem://logging")
   (d/create-database "datomic:mem://logging")
   (defonce conn (d/connect "datomic:mem://logging"))
-  )
+ 
+  @(d/transact conn log-schema)
+  @(d/transact conn [{:evento/id #uuid "67324c94-4e3a-4526-a10c-1c8a418bc280"
+                      :evento/nombre "EVENTO ACTUALIZADO EXITOSAMENTE"
+                      :evento/origen :origen/uti
+                      :evento/fecha (read-instant-date "2024-12-11T12:53")
+                      :evento/estado {:estado/ok ["Todo está bien"]}
+                      :paciente/tipo :paciente/ambulatorio
+                      :paciente/historia_clinica 111111
+                      :paciente/historia_clinica_unica 22222}])
+  
+  (sanatoriocolegiales.logging-servoy.persistence.persistence-api/evento-por-id conn #uuid "67324c94-4e3a-4526-a10c-1c8a418bc280")
+ 
+  (tap> @(client/put (str prod-url "/cirugia")
+                     {:headers {"Content-Type" "application/json"}
+                      :body  (json/encode {:evento/nombre "EVENTO ACTUALIZADO EXITOSAMENTE"
+                                           :evento/origen "origen/uti"
+                                           :evento/fecha "2024-12-11T12:53"
+                                           :evento/estado {:estado/ok ["Todo está bien"]}
+                                           :paciente/tipo "ambulatorio"
+                                           :paciente/historia_clinica 111111
+                                           :paciente/historia_clinica_unica 22222})
+                      :path-params {:id #uuid "67324c94-4e3a-4526-a10c-1c8a418bc280"}}))
+  )  
